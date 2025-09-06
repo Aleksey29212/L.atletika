@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users } from 'lucide-react';
+import { Medal, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const teamCompositions = [
   { label: '3 Юноши + 3 Девушки', value: '3-3' },
@@ -16,6 +17,32 @@ const teamCompositions = [
   { label: '5 Юношей + 5 Девушек', value: '5-5' },
   { label: '6 Юношей + 6 Девушек', value: '6-6' },
 ];
+
+const getRankClass = (rank: number) => {
+  switch (rank) {
+    case 1:
+      return 'bg-yellow-100/50 dark:bg-yellow-900/50';
+    case 2:
+      return 'bg-gray-100/50 dark:bg-gray-700/50';
+    case 3:
+      return 'bg-orange-100/50 dark:bg-orange-900/50';
+    default:
+      return '';
+  }
+};
+
+const getMedal = (rank: number) => {
+  switch (rank) {
+    case 1:
+      return <Medal className="h-5 w-5 text-yellow-500" />;
+    case 2:
+      return <Medal className="h-5 w-5 text-gray-500" />;
+    case 3:
+      return <Medal className="h-5 w-5 text-orange-600" />;
+    default:
+      return null;
+  }
+}
 
 export default function TeamsPage() {
   const { participants } = useData();
@@ -101,31 +128,39 @@ export default function TeamsPage() {
               </TableHeader>
               <TableBody>
                 {teams.length > 0 ? (
-                  teams.map(({ name, totalPoints, members }, index) => (
-                    <TableRow key={name}>
-                      <TableCell className="font-bold text-lg">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{name}</TableCell>
-                      <TableCell>
-                        <div className="flex -space-x-2">
-                        <TooltipProvider>
-                          {members.map(member => (
-                            <Tooltip key={member.id}>
-                              <TooltipTrigger asChild>
-                                <Avatar className="border-2 border-card">
-                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{member.name} ({(member as any).points.toFixed(2)} очк.)</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          ))}
-                        </TooltipProvider>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">{totalPoints.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))
+                  teams.map(({ name, totalPoints, members }, index) => {
+                    const rank = index + 1;
+                    return (
+                      <TableRow key={name} className={cn(getRankClass(rank))}>
+                        <TableCell className="font-bold text-lg">
+                          <div className="flex items-center gap-2">
+                            {getMedal(rank)}
+                            <span>{rank}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{name}</TableCell>
+                        <TableCell>
+                          <div className="flex -space-x-2">
+                          <TooltipProvider>
+                            {members.map(member => (
+                              <Tooltip key={member.id}>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="border-2 border-card">
+                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{member.name} ({(member as any).points.toFixed(2)} очк.)</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </TooltipProvider>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">{totalPoints.toFixed(2)}</TableCell>
+                      </TableRow>
+                    );
+                })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">

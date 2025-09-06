@@ -8,11 +8,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Medal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type LeaderboardEntry = {
   rank: number;
   participant: Participant;
 };
+
+const getRankClass = (rank: number) => {
+  switch (rank) {
+    case 1:
+      return 'bg-yellow-100/50 dark:bg-yellow-900/50';
+    case 2:
+      return 'bg-gray-100/50 dark:bg-gray-700/50';
+    case 3:
+      return 'bg-orange-100/50 dark:bg-orange-900/50';
+    default:
+      return '';
+  }
+};
+
+const getMedal = (rank: number) => {
+  switch (rank) {
+    case 1:
+      return <Medal className="h-5 w-5 text-yellow-500" />;
+    case 2:
+      return <Medal className="h-5 w-5 text-gray-500" />;
+    case 3:
+      return <Medal className="h-5 w-5 text-orange-600" />;
+    default:
+      return null;
+  }
+}
 
 const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
   <div className="rounded-md border">
@@ -30,8 +58,13 @@ const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
       <TableBody>
         {entries.length > 0 ? (
           entries.map(({ rank, participant }) => (
-            <TableRow key={participant.id}>
-              <TableCell className="font-bold text-lg">{rank}</TableCell>
+            <TableRow key={participant.id} className={cn(getRankClass(rank))}>
+              <TableCell className="font-bold text-lg">
+                <div className="flex items-center gap-2">
+                  {getMedal(rank)}
+                  <span>{rank}</span>
+                </div>
+              </TableCell>
               <TableCell className="font-medium">{participant.name}</TableCell>
               <TableCell>{participant.team}</TableCell>
               <TableCell>
