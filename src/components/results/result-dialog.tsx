@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Distance } from '@/lib/types';
 
 const formSchema = z.object({
-  distance: z.enum(['500m', '1000m']),
+  distance: z.enum(['500m', '1000m', '1500m']),
   time: z.string().regex(/^\d{2}:\d{2}\.\d{3}$/, { message: "Time must be in MM:SS.ms format (e.g., 01:30.123)" }),
 });
 
@@ -31,7 +32,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   const form = useForm<ResultFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      distance: '500m',
+      distance: '1500m',
       time: '',
     },
   });
@@ -40,6 +41,8 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     addResult(participantId, data);
     setIsOpen(false);
   };
+
+  const distances: Distance[] = ['500m', '1000m', '1500m'];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -62,8 +65,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="500m">500m</SelectItem>
-                      <SelectItem value="1000m">1000m</SelectItem>
+                      {distances.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <FormMessage />

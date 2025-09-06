@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Distance } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -23,16 +24,17 @@ export function secondsToTime(seconds: number): string {
 const scoreParams = {
   '500m': { bestTime: 90, baseTime: 125, maxPoints: 100 },
   '1000m': { bestTime: 180, baseTime: 250, maxPoints: 100 },
+  '1500m': { bestTime: 270, baseTime: 360, maxPoints: 100 },
 };
 
 /**
  * Calculates the score for a given distance and time using linear interpolation.
  * The faster the time, the higher the score.
- * @param distance The race distance ('500m' or '1000m').
+ * @param distance The race distance ('500m', '1000m' or '1500m').
  * @param time The time achieved in "MM:SS.ms" format.
  * @returns The calculated score, rounded to the nearest integer.
  */
-export function calculateScore(distance: '500m' | '1000m', time: string): number {
+export function calculateScore(distance: Distance, time: string): number {
   const seconds = timeToSeconds(time);
   if (seconds === 0) return 0;
 

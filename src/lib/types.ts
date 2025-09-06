@@ -1,7 +1,9 @@
+export type Distance = '500m' | '1000m' | '1500m';
+
 export interface Result {
   id: string;
   participantId: string;
-  distance: '500m' | '1000m';
+  distance: Distance;
   time: string; // "MM:SS.ms" e.g., "01:30.123"
   score: number;
 }
