@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { timeToSeconds } from '@/lib/utils';
 
 interface InsightDialogProps {
   isOpen: boolean;
@@ -26,7 +27,8 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
 
     const participantHistory = participant.results.length > 0
       ? participant.results
-          .map(r => `${r.distance}: ${r.time} (Score: ${r.score})`)
+          .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))
+          .map(r => `${r.distance}: ${r.time}`)
           .join('; ')
       : 'No results recorded yet.';
 

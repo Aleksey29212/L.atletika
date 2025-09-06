@@ -2,21 +2,21 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/providers/data-provider';
-import type { Participant, Result, Gender, Category } from '@/lib/types';
+import type { Participant, Gender, Category, Distance } from '@/lib/types';
 import { Genders, Categories } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { timeToSeconds } from '@/lib/utils';
 
 type LeaderboardEntry = {
   rank: number;
   participant: Participant;
-  score: number;
-  time?: string;
+  time: string;
 };
 
-const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
+const LeaderboardTable = ({ entries, distance }: { entries: LeaderboardEntry[]; distance: Distance | 'Overall' }) => (
   <div className="rounded-md border">
     <Table>
       <TableHeader>
@@ -26,26 +26,24 @@ const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
           <TableHead>Team</TableHead>
           <TableHead>Gender</TableHead>
           <TableHead>Category</TableHead>
-          {entries[0]?.time && <TableHead>Time</TableHead>}
-          <TableHead className="text-right">Score</TableHead>
+          <TableHead>Best Time ({distance})</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {entries.length > 0 ? (
-          entries.map(({ rank, participant, score, time }) => (
+          entries.map(({ rank, participant, time }) => (
             <TableRow key={participant.id}>
               <TableCell className="font-bold text-lg">{rank}</TableCell>
               <TableCell className="font-medium">{participant.name}</TableCell>
               <TableCell>{participant.team}</TableCell>
               <TableCell>{participant.gender}</TableCell>
               <TableCell>{participant.category}</TableCell>
-              {time && <TableCell>{time}</TableCell>}
-              <TableCell className="text-right font-semibold">{score}</TableCell>
+              <TableCell className="font-semibold">{time}</TableCell>
             </TableRow>
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={7} className="h-24 text-center">
+            <TableCell colSpan={6} className="h-24 text-center">
               No results to display.
             </TableCell>
           </TableRow>
@@ -66,34 +64,35 @@ export default function LeaderboardPage() {
       (categoryFilter === 'All' || p.category === categoryFilter)
     );
   }, [participants, genderFilter, categoryFilter]);
-
-  const overallLeaderboard = useMemo<LeaderboardEntry[]>(() => {
+  
+  const getBestTime = (participant: Participant, distance: Distance) => {
+    const bestResult = participant.results
+      .filter(r => r.distance === distance)
+      .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))[0];
+    return bestResult ? bestResult.time : null;
+  };
+  
+  const distanceLeaderboard = (distance: Distance): LeaderboardEntry[] => {
     return filteredParticipants
       .map(p => ({
         participant: p,
-        score: p.results.reduce((sum, r) => sum + r.score, 0),
+        time: getBestTime(p, distance),
       }))
-      .filter(p => p.score > 0)
-      .sort((a, b) => b.score - a.score)
+      .filter((entry): entry is { participant: Participant; time: string } => entry.time !== null)
+      .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))
       .map((p, index) => ({ ...p, rank: index + 1 }));
-  }, [filteredParticipants]);
-
-  const distanceLeaderboard = (distance: '500m' | '1000m' | '1500m') => {
-    return filteredParticipants
-      .flatMap(p => p.results.filter(r => r.distance === distance).map(r => ({ ...r, participant: p })))
-      .sort((a, b) => b.score - a.score)
-      .map((r, index) => ({
-        rank: index + 1,
-        participant: r.participant,
-        score: r.score,
-        time: r.time,
-      }));
   };
+
+  const overallLeaderboard = useMemo((): LeaderboardEntry[] => {
+     // For "Overall", we just show the 1000m leaderboard as a default.
+     // A true "overall" score is not well-defined with just time.
+    return distanceLeaderboard('1000m');
+  }, [filteredParticipants]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Leaderboard</CardTitle>
+        <CardTitle>Personal Rankings</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">
@@ -116,24 +115,16 @@ export default function LeaderboardPage() {
               </SelectContent>
             </Select>
         </div>
-        <Tabs defaultValue="overall" className="w-full">
+        <Tabs defaultValue="1000m" className="w-full">
           <TabsList>
-            <TabsTrigger value="overall">Overall</TabsTrigger>
             <TabsTrigger value="500m">500m</TabsTrigger>
             <TabsTrigger value="1000m">1000m</TabsTrigger>
-            <TabsTrigger value="1500m">1500m</TabsTrigger>
           </TabsList>
-          <TabsContent value="overall" className="mt-4">
-            <LeaderboardTable entries={overallLeaderboard} />
-          </TabsContent>
           <TabsContent value="500m" className="mt-4">
-            <LeaderboardTable entries={distanceLeaderboard('500m')} />
+            <LeaderboardTable entries={distanceLeaderboard('500m')} distance="500m" />
           </TabsContent>
           <TabsContent value="1000m" className="mt-4">
-            <LeaderboardTable entries={distanceLeaderboard('1000m')} />
-          </TabsContent>
-           <TabsContent value="1500m" className="mt-4">
-            <LeaderboardTable entries={distanceLeaderboard('1500m')} />
+            <LeaderboardTable entries={distanceLeaderboard('1000m')} distance="1000m"/>
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -13,8 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Distance } from '@/lib/types';
 
 const formSchema = z.object({
-  distance: z.enum(['500m', '1000m', '1500m']),
-  time: z.string().regex(/^\d{2}:\d{2}\.\d{3}$/, { message: "Time must be in MM:SS.ms format (e.g., 01:30.123)" }),
+  distance: z.enum(['500m', '1000m']),
+  time: z.string().regex(/^\d{2}:\d{2}\.\d{2}$/, { message: "Time must be in MM:SS.ss format (e.g., 01:30.12)" }),
 });
 
 type ResultFormValues = z.infer<typeof formSchema>;
@@ -32,7 +32,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   const form = useForm<ResultFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      distance: '1500m',
+      distance: '1000m',
       time: '',
     },
   });
@@ -42,7 +42,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     setIsOpen(false);
   };
 
-  const distances: Distance[] = ['500m', '1000m', '1500m'];
+  const distances: Distance[] = ['500m', '1000m'];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -79,7 +79,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                 <FormItem>
                   <FormLabel>Time</FormLabel>
                   <FormControl>
-                    <Input placeholder="MM:SS.ms (e.g., 01:30.123)" {...field} />
+                    <Input placeholder="MM:SS.ss (e.g., 01:30.12)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

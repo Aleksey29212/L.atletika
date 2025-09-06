@@ -2,123 +2,212 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/providers/data-provider';
-import type { Participant, Gender, Category } from '@/lib/types';
-import { Genders, Categories } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Participant, Team as TeamType, Distance } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { timeToSeconds, secondsToTime } from '@/lib/utils';
+import { Users, Info } from 'lucide-react';
 
-type TeamRankingEntry = {
-  rank: number;
-  name: string;
-  totalScore: number;
-  members: Participant[];
-};
+const teamCompositions = [
+  { label: '3 Males + 3 Females', value: '3-3' },
+  { label: '4 Males + 4 Females', value: '4-4' },
+  { label: '5 Males + 5 Females', value: '5-5' },
+  { label: '6 Males + 6 Females', value: '6-6' },
+];
 
 export default function TeamsPage() {
   const { participants } = useData();
-  const [genderFilter, setGenderFilter] = useState<Gender | 'All'>('All');
-  const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
+  const [distance, setDistance] = useState<Distance>('1000m');
+  const [composition, setComposition] = useState('4-4');
 
-  const teamRankings = useMemo<TeamRankingEntry[]>(() => {
-    const teams: { [key: string]: { totalScore: number; members: Participant[] } } = {};
+  const { teams, unassignedParticipants } = useMemo<{
+    teams: TeamType[];
+    unassignedParticipants: Participant[];
+  }>(() => {
+    const [malesNeeded, femalesNeeded] = composition.split('-').map(Number);
+    const teamSize = malesNeeded + femalesNeeded;
 
-    participants
-      .filter(p => 
-        (genderFilter === 'All' || p.gender === genderFilter) &&
-        (categoryFilter === 'All' || p.category === categoryFilter)
-      )
-      .forEach(p => {
-        if (!teams[p.team]) {
-          teams[p.team] = { totalScore: 0, members: [] };
-        }
-        teams[p.team].members.push(p);
-        teams[p.team].totalScore += p.results.reduce((sum, r) => sum + r.score, 0);
-      });
+    const participantsWithTimes = participants
+      .map(p => {
+        const bestResult = p.results
+          .filter(r => r.distance === distance)
+          .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))[0];
+        
+        return {
+          ...p,
+          bestTime: bestResult ? timeToSeconds(bestResult.time) : Infinity,
+          bestTimeString: bestResult ? bestResult.time : 'N/A',
+        };
+      })
+      .filter(p => p.bestTime !== Infinity);
 
-    return Object.entries(teams)
-      .map(([name, data]) => ({ name, ...data }))
-      .filter(team => team.totalScore > 0)
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .map((team, index) => ({ ...team, rank: index + 1 }));
-  }, [participants, genderFilter, categoryFilter]);
+    const teamsByOriginalName: { [key: string]: Participant[] } = {};
+    participantsWithTimes.forEach(p => {
+      if (!teamsByOriginalName[p.team]) {
+        teamsByOriginalName[p.team] = [];
+      }
+      teamsByOriginalName[p.team].push(p);
+    });
+    
+    const finalTeams: TeamType[] = [];
+    const assignedIds = new Set<string>();
+
+    Object.entries(teamsByOriginalName).forEach(([teamName, members]) => {
+      const males = members.filter(m => m.gender === 'Male').sort((a, b) => a.bestTime - b.bestTime);
+      const females = members.filter(m => m.gender === 'Female').sort((a, b) => a.bestTime - b.bestTime);
+
+      if (males.length >= malesNeeded && females.length >= femalesNeeded) {
+        const teamMembers = [...males.slice(0, malesNeeded), ...females.slice(0, femalesNeeded)];
+        const totalTime = teamMembers.reduce((sum, m) => sum + m.bestTime, 0);
+        
+        teamMembers.forEach(m => assignedIds.add(m.id));
+
+        finalTeams.push({
+          name: teamName,
+          members: teamMembers,
+          totalTime: totalTime,
+          totalTimeString: secondsToTime(totalTime),
+        });
+      }
+    });
+
+    finalTeams.sort((a, b) => a.totalTime - b.totalTime);
+    const unassigned = participantsWithTimes.filter(p => !assignedIds.has(p.id));
+
+    return { teams: finalTeams, unassignedParticipants: unassigned };
+  }, [participants, distance, composition]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Team Rankings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-            <Select value={genderFilter} onValueChange={(value) => setGenderFilter(value as Gender | 'All')}>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Rankings</CardTitle>
+          <CardDescription>
+            Teams are formed based on the best performers from each original team, according to the selected composition.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+            <Select value={distance} onValueChange={(value) => setDistance(value as Distance)}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by gender" />
+                <SelectValue placeholder="Select Distance" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Genders</SelectItem>
-                {Genders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                <SelectItem value="500m">500m</SelectItem>
+                <SelectItem value="1000m">1000m</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as Category | 'All')}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by category" />
+            <Select value={composition} onValueChange={setComposition}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Select Team Composition" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Categories</SelectItem>
-                {Categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {teamCompositions.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">Rank</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead>Members</TableHead>
-                <TableHead className="text-right">Total Score</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teamRankings.length > 0 ? (
-                teamRankings.map(({ rank, name, totalScore, members }) => (
-                  <TableRow key={name}>
-                    <TableCell className="font-bold text-lg">{rank}</TableCell>
-                    <TableCell className="font-medium">{name}</TableCell>
-                    <TableCell>
-                      <div className="flex -space-x-2">
-                      <TooltipProvider>
-                        {members.map(member => (
-                          <Tooltip key={member.id}>
-                            <TooltipTrigger asChild>
-                              <Avatar className="border-2 border-card">
-                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{member.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        ))}
-                      </TooltipProvider>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">{totalScore}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
-                    No teams to display for the selected filters.
-                  </TableCell>
+                  <TableHead className="w-[80px]">Rank</TableHead>
+                  <TableHead>Team</TableHead>
+                  <TableHead>Members</TableHead>
+                  <TableHead className="text-right">Total Time</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {teams.length > 0 ? (
+                  teams.map(({ name, totalTimeString, members }, index) => (
+                    <TableRow key={name}>
+                      <TableCell className="font-bold text-lg">{index + 1}</TableCell>
+                      <TableCell className="font-medium">{name}</TableCell>
+                      <TableCell>
+                        <div className="flex -space-x-2">
+                        <TooltipProvider>
+                          {members.map(member => (
+                            <Tooltip key={member.id}>
+                              <TooltipTrigger asChild>
+                                <Avatar className="border-2 border-card">
+                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{member.name} ({member.bestTimeString})</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                        </TooltipProvider>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">{totalTimeString}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      No teams qualify for the selected composition and distance.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-6 w-6" />
+            Participants Not in Teams
+          </CardTitle>
+          <CardDescription>
+            These participants were not included in a qualifying team for the selected criteria. They are ranked by their individual best time for the chosen distance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Original Team</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Best Time ({distance})</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {unassignedParticipants.length > 0 ? (
+                    unassignedParticipants
+                      .sort((a,b) => a.bestTime - b.bestTime)
+                      .map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="font-medium">{p.name}</TableCell>
+                        <TableCell>{p.team}</TableCell>
+                        <TableCell>{p.gender}</TableCell>
+                        <TableCell>{p.category}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {(p as any).bestTimeString}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        All participants are assigned to a team.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

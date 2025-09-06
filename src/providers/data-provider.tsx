@@ -1,8 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Participant, Result, Gender, Category } from '@/lib/types';
-import { calculateScore } from '@/lib/utils';
+import type { Participant, Result } from '@/lib/types';
 import { MOCK_PARTICIPANTS } from '@/lib/mock-data';
 
 interface DataContextType {
@@ -10,7 +9,7 @@ interface DataContextType {
   addParticipant: (participant: Omit<Participant, 'id' | 'results'>) => void;
   updateParticipant: (id: string, participant: Omit<Participant, 'id' | 'results'>) => void;
   deleteParticipant: (id: string) => void;
-  addResult: (participantId: string, result: Omit<Result, 'id' | 'participantId' | 'score'>) => void;
+  addResult: (participantId: string, result: Omit<Result, 'id' | 'participantId'>) => void;
   getParticipantById: (id: string) => Participant | undefined;
 }
 
@@ -38,12 +37,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setParticipants(prev => prev.filter(p => p.id !== id));
   };
 
-  const addResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'score'>) => {
+  const addResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId'>) => {
     const newResult: Result = {
       ...resultData,
       id: new Date().toISOString(),
       participantId: participantId,
-      score: calculateScore(resultData.distance, resultData.time),
     };
 
     setParticipants(prev =>

@@ -31,9 +31,9 @@ const performanceInsightsPrompt = ai.definePrompt({
   name: 'performanceInsightsPrompt',
   input: {schema: PerformanceInsightsInputSchema},
   output: {schema: PerformanceInsightsOutputSchema},
-  prompt: `You are an AI assistant designed to provide insights for track and field athletes.
+  prompt: `You are an AI assistant designed to provide insights for track and field athletes. Your analysis should be based on time, where lower is better.
 
-  Based on the participant's historical data, provide insights into their performance, suggest potential areas for improvement, and offer predictions.
+  Based on the participant's historical data (in MM:SS.ss format), provide insights into their performance, suggest potential areas for improvement, and offer predictions.
   Consider the participant's name and history when generating the report.
 
   Participant Name: {{{participantName}}}
