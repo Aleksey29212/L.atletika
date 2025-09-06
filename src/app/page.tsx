@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function Home() {
   const { participants, deleteParticipant, recalculateAllScores } = useData();
@@ -104,7 +105,7 @@ export default function Home() {
                   <TableHead>Категория</TableHead>
                   <TableHead>Результат</TableHead>
                   <TableHead>Очки</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[120px] text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -128,47 +129,66 @@ export default function Home() {
                       <TableCell className="font-mono">
                          {participant.result ? participant.result.points.toFixed(2) : '-'}
                       </TableCell>
-                      <TableCell>
-                         <AlertDialog>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Открыть меню</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleAddOrEditResult(participant)}>
-                                <BarChart className="mr-2 h-4 w-4" /> {participant.result ? 'Редактировать результат' : 'Добавить результат'}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewInsights(participant)} disabled={!participant.result}>
-                                <Sparkles className="mr-2 h-4 w-4" /> Получить инсайты
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEdit(participant)}>
-                                <Edit className="mr-2 h-4 w-4" /> Редактировать
-                              </DropdownMenuItem>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive">
-                                  <Trash2 className="mr-2 h-4 w-4" /> Удалить
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                           <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Это действие нельзя отменить. Это навсегда удалит участника и все его результаты.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Отмена</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(participant.id)} className="bg-destructive hover:bg-destructive/90">
-                                Удалить
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <TableCell className="text-right">
+                         <TooltipProvider>
+                          <div className="flex items-center justify-end gap-2">
+                             <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAddOrEditResult(participant)}>
+                                  <BarChart className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{participant.result ? 'Редактировать результат' : 'Добавить результат'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                             <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(participant)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Редактировать участника</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            
+                            <AlertDialog>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Открыть меню</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleViewInsights(participant)} disabled={!participant.result}>
+                                    <Sparkles className="mr-2 h-4 w-4" /> Получить инсайты
+                                  </DropdownMenuItem>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" /> Удалить
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                               <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Это действие нельзя отменить. Это навсегда удалит участника и все его результаты.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(participant.id)} className="bg-destructive hover:bg-destructive/90">
+                                    Удалить
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   ))
