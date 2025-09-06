@@ -32,10 +32,20 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   const form = useForm<ResultFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      distance: participant?.gender === 'Female' ? '500m' : '1000m',
+      distance: '500m',
       time: '',
     },
   });
+
+  React.useEffect(() => {
+    // Set default distance based on gender when dialog opens
+    if (participant) {
+      form.reset({
+        distance: '500m',
+        time: '',
+      });
+    }
+  }, [participant, isOpen, form]);
 
   const onSubmit = (data: ResultFormValues) => {
     addResult(participantId, data);
@@ -59,7 +69,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Дистанция</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Выберите дистанцию" />
