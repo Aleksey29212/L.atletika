@@ -46,7 +46,6 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
     <Dialog open={isOpen} onOpenChange={(open) => {
       setIsOpen(open);
       if (!open) {
-        // Reset state on close
         setInsights(null);
         setError(null);
         setIsLoading(false);
@@ -54,7 +53,7 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
     }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Инсайты по производительности для {participant.name}</DialogTitle>
+          <DialogTitle>Анализ результатов для {participant.name}</DialogTitle>
           <DialogDescription>
             Сгенерируйте инсайты на основе результата участника с помощью ИИ.
           </DialogDescription>

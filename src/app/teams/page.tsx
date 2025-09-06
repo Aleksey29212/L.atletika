@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/providers/data-provider';
-import type { Participant, Team as TeamType, Distance } from '@/lib/types';
+import type { Participant, Team as TeamType } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -11,10 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users } from 'lucide-react';
 
 const teamCompositions = [
-  { label: '3 Мужчины + 3 Женщины', value: '3-3' },
-  { label: '4 Мужчины + 4 Женщины', value: '4-4' },
-  { label: '5 Мужчин + 5 Женщин', value: '5-5' },
-  { label: '6 Мужчин + 6 Женщин', value: '6-6' },
+  { label: '3 Юноши + 3 Девушки', value: '3-3' },
+  { label: '4 Юноши + 4 Девушки', value: '4-4' },
+  { label: '5 Юношей + 5 Девушек', value: '5-5' },
+  { label: '6 Юношей + 6 Девушек', value: '6-6' },
 ];
 
 export default function TeamsPage() {
@@ -32,7 +32,6 @@ export default function TeamsPage() {
       .map(p => ({
         ...p,
         points: p.result!.points,
-        bestTimeString: p.result!.time,
       }));
 
     const teamsByOriginalName: { [key: string]: Participant[] } = {};
@@ -82,7 +81,7 @@ export default function TeamsPage() {
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
             <Select value={composition} onValueChange={setComposition}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[240px]">
                 <SelectValue placeholder="Выберите состав команды" />
               </SelectTrigger>
               <SelectContent>

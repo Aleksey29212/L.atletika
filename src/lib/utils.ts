@@ -36,6 +36,5 @@ export function calculateScore(distance: Distance, time: string): number {
 
   const score = ((config.base - timeInSeconds) / (config.base - config.gold)) * 100;
   
-  // Возвращаем значение с точностью, чтобы избежать потери данных при округлении
   return score;
 }

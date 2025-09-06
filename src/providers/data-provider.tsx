@@ -48,7 +48,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addOrUpdateResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => {
-    // Points are now initialized to 0 and calculated later.
     const newResult: Result = {
       ...resultData,
       id: new Date().toISOString(),

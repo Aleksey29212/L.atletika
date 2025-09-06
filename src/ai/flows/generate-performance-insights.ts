@@ -13,13 +13,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const PerformanceInsightsInputSchema = z.object({
-  participantName: z.string().describe('The name of the participant to generate insights for.'),
-  participantHistory: z.string().describe('Historical performance data of the participant, including race times and categories.'),
+  participantName: z.string().describe('Имя участника для генерации инсайтов.'),
+  participantHistory: z.string().describe('Исторические данные о выступлениях участника, включая время забегов и категории.'),
 });
 export type PerformanceInsightsInput = z.infer<typeof PerformanceInsightsInputSchema>;
 
 const PerformanceInsightsOutputSchema = z.object({
-  insights: z.string().describe('AI-generated insights into the participant performance, potential areas for improvement, and predictions based on historical data.'),
+  insights: z.string().describe('Инсайты, сгенерированные ИИ, о производительности участника, потенциальных областях для улучшения и прогнозах на основе исторических данных.'),
 });
 export type PerformanceInsightsOutput = z.infer<typeof PerformanceInsightsOutputSchema>;
 
@@ -31,15 +31,15 @@ const performanceInsightsPrompt = ai.definePrompt({
   name: 'performanceInsightsPrompt',
   input: {schema: PerformanceInsightsInputSchema},
   output: {schema: PerformanceInsightsOutputSchema},
-  prompt: `You are an AI assistant designed to provide insights for track and field athletes. Your analysis should be based on time, where lower is better.
+  prompt: `Вы — ИИ-помощник, предназначенный для предоставления аналитики для легкоатлетов. Ваш анализ должен быть основан на времени, где меньшее значение — лучше.
 
-  Based on the participant's historical data (in MM:SS.ss format), provide insights into their performance, suggest potential areas for improvement, and offer predictions.
-  Consider the participant's name and history when generating the report.
+  На основе исторических данных участника (в формате ММ:СС.сс) предоставьте аналитику по его производительности, предложите потенциальные области для улучшения и сделайте прогнозы.
+  Учитывайте имя и историю участника при составлении отчета.
 
-  Participant Name: {{{participantName}}}
-  Participant History: {{{participantHistory}}}
+  Имя участника: {{{participantName}}}
+  История участника: {{{participantHistory}}}
 
-  Insights:
+  Инсайты:
   `,
 });
 

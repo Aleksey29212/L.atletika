@@ -20,7 +20,7 @@ export interface Participant {
   team: string;
   gender: Gender;
   category: Category;
-  result: Result | null; // Changed from results: Result[]
+  result: Result | null;
 }
 
 export interface Team {

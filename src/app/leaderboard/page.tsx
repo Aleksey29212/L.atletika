@@ -62,7 +62,7 @@ export default function LeaderboardPage() {
 
   const leaderboardEntries = useMemo((): LeaderboardEntry[] => {
     return participants
-      .filter(p => p.result) // Only include participants with a result
+      .filter(p => p.result) 
       .filter(p => 
         (genderFilter === 'All' || p.gender === genderFilter) &&
         (categoryFilter === 'All' || p.category === categoryFilter) &&

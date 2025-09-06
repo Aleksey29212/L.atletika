@@ -36,7 +36,6 @@ const generateTime = (distance: '500m' | '1000m'): string => {
 };
 
 const generateResult = (participantId: string, gender: Gender): Result | null => {
-  // Not all participants may have a result
   if (Math.random() < 0.1) {
     return null;
   }
@@ -53,7 +52,7 @@ const generateResult = (participantId: string, gender: Gender): Result | null =>
     participantId,
     distance,
     time: generateTime(distance),
-    points: 0 // Points will be calculated in the provider
+    points: 0
   };
 };
 

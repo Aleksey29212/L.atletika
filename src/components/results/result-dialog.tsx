@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Participant, Distance } from '@/lib/types';
-import { timeToSeconds, secondsToTime } from '@/lib/utils';
+import { timeToSeconds } from '@/lib/utils';
 
 const formSchema = z.object({
   distance: z.enum(['500m', '1000m']),
@@ -76,7 +76,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participant }: ResultD
   };
 
   const availableDistances: Distance[] = participant?.gender === 'Female' ? ['500m'] : ['500m', '1000m'];
-  const title = participant?.result ? `Редактировать результат` : `Добавить результат для ${participant?.name}`;
+  const title = participant?.result ? `Редактировать результат для ${participant?.name}` : `Добавить результат для ${participant?.name}`;
 
 
   return (

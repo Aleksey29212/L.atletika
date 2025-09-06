@@ -36,7 +36,7 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
       name: '',
       team: '',
       gender: 'Male',
-      category: 'Senior',
+      category: 'Средняя',
     },
   });
 
@@ -53,7 +53,7 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
         name: '',
         team: '',
         gender: 'Male',
-        category: 'Senior',
+        category: 'Средняя',
       });
     }
   }, [participant, form, isOpen]);
@@ -95,7 +95,7 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
                 <FormItem>
                   <FormLabel>Команда</FormLabel>
                   <FormControl>
-                    <Input placeholder="например, Орлы" {...field} />
+                    <Input placeholder="например, СОШ №1" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
