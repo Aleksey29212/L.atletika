@@ -32,7 +32,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   const form = useForm<ResultFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      distance: '1000m',
+      distance: participant?.gender === 'Female' ? '500m' : '1000m',
       time: '',
     },
   });
@@ -43,7 +43,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     form.reset();
   };
 
-  const distances: Distance[] = ['500m', '1000m'];
+  const availableDistances: Distance[] = participant?.gender === 'Female' ? ['500m'] : ['500m', '1000m'];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -66,7 +66,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {distances.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      {availableDistances.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <FormMessage />
