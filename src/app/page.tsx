@@ -7,21 +7,31 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Trash2, Edit, BarChart, Sparkles, FileUp, FileDown, CheckCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, BarChart, Sparkles, FileUp, FileDown, CheckCircle, Calculator } from 'lucide-react';
 import ParticipantDialog from '@/components/participants/participant-dialog';
 import ResultDialog from '@/components/results/result-dialog';
 import InsightDialog from '@/components/insights/insight-dialog';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
-  const { participants, deleteParticipant } = useData();
+  const { participants, deleteParticipant, recalculateAllScores } = useData();
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [isParticipantDialogOpen, setParticipantDialogOpen] = useState(false);
   const [isResultDialogOpen, setResultDialogOpen] = useState(false);
   const [isInsightDialogOpen, setInsightDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { toast } = useToast();
+
+  const handleRecalculate = () => {
+    recalculateAllScores();
+    toast({
+      title: "Результаты обновлены",
+      description: "Баллы для всех участников были успешно пересчитаны.",
+    });
+  };
 
   const handleAddNew = () => {
     setSelectedParticipant(null);
@@ -65,6 +75,10 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" disabled><FileUp className="mr-2 h-4 w-4" /> Импорт</Button>
             <Button variant="outline" size="sm" disabled><FileDown className="mr-2 h-4 w-4" /> Экспорт</Button>
+            <Button onClick={handleRecalculate} size="sm" variant="secondary">
+              <Calculator className="mr-2 h-4 w-4" />
+              Вычислить результаты
+            </Button>
             <Button onClick={handleAddNew} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
               Добавить участника
@@ -89,6 +103,7 @@ export default function Home() {
                   <TableHead>Пол</TableHead>
                   <TableHead>Категория</TableHead>
                   <TableHead>Результат</TableHead>
+                  <TableHead>Очки</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -109,6 +124,9 @@ export default function Home() {
                         ) : (
                           <Badge variant="outline">Нет результата</Badge>
                         )}
+                      </TableCell>
+                      <TableCell className="font-mono">
+                         {participant.result ? participant.result.points.toFixed(2) : '-'}
                       </TableCell>
                       <TableCell>
                          <AlertDialog>
@@ -156,7 +174,7 @@ export default function Home() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       Участники не найдены.
                     </TableCell>
                   </TableRow>

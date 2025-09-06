@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import type { Participant, Result } from '@/lib/types';
 import { MOCK_PARTICIPANTS } from '@/lib/mock-data';
 import { calculateScore } from '@/lib/utils';
@@ -12,6 +12,7 @@ interface DataContextType {
   deleteParticipant: (id: string) => void;
   addOrUpdateResult: (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => void;
   getParticipantById: (id: string) => Participant | undefined;
+  recalculateAllScores: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -47,11 +48,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addOrUpdateResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => {
+    // Points are now initialized to 0 and calculated later.
     const newResult: Result = {
       ...resultData,
       id: new Date().toISOString(),
       participantId: participantId,
-      points: calculateScore(resultData.distance, resultData.time)
+      points: 0 
     };
 
     setParticipants(prev =>
@@ -62,6 +64,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       )
     );
   };
+  
+  const recalculateAllScores = useCallback(() => {
+    setParticipants(prev => 
+      prev.map(p => {
+        if (p.result) {
+          const newPoints = calculateScore(p.result.distance, p.result.time);
+          return {
+            ...p,
+            result: {
+              ...p.result,
+              points: newPoints
+            }
+          };
+        }
+        return p;
+      })
+    );
+  }, []);
 
   const getParticipantById = (id: string) => {
     return participants.find(p => p.id === id);
@@ -76,6 +96,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         deleteParticipant,
         addOrUpdateResult,
         getParticipantById,
+        recalculateAllScores,
       }}
     >
       {children}
