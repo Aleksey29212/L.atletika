@@ -22,7 +22,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 p-2">
           <Trophy className="h-6 w-6 text-primary" />
           <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            TrackStats
+            Омский Кросс
           </span>
         </div>
       </SidebarHeader>

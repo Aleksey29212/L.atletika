@@ -7,8 +7,8 @@ import { AppHeader } from '@/components/layout/app-header';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Статистика по легкой атлетике',
-  description: 'Управление и анализ данных участников соревнований по легкой атлетике.',
+  title: 'Кросс среди образовательных учреждений города Омска',
+  description: 'Платформа для проведения соревнований по кроссу среди образовательных учреждений города Омска.',
 };
 
 export default function RootLayout({
