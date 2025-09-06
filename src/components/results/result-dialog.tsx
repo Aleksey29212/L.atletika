@@ -11,10 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Distance } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   distance: z.enum(['500m', '1000m']),
-  time: z.string().regex(/^\d{2}:\d{2}\.\d{2}$/, { message: "Время должно быть в формате ММ:СС.сс (например, 01:30.12)" }),
+  minutes: z.coerce.number().min(0, { message: "Минуты не могут быть отрицательными" }).max(59, { message: "Максимум 59 минут" }),
+  seconds: z.coerce.number().min(0, { message: "Секунды не могут быть отрицательными" }).max(59, { message: "Максимум 59 секунд" }),
+  hundredths: z.coerce.number().min(0, { message: "Сотые не могут быть отрицательными" }).max(99, { message: "Максимум 99" }),
 });
 
 type ResultFormValues = z.infer<typeof formSchema>;
@@ -33,22 +36,26 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     resolver: zodResolver(formSchema),
     defaultValues: {
       distance: '500m',
-      time: '',
+      minutes: 0,
+      seconds: 0,
+      hundredths: 0,
     },
   });
 
   React.useEffect(() => {
-    // Set default distance based on gender when dialog opens
     if (participant) {
       form.reset({
         distance: '500m',
-        time: '',
+        minutes: 0,
+        seconds: 0,
+        hundredths: 0,
       });
     }
   }, [participant, isOpen, form]);
 
   const onSubmit = (data: ResultFormValues) => {
-    addResult(participantId, data);
+    const time = `${String(data.minutes).padStart(2, '0')}:${String(data.seconds).padStart(2, '0')}.${String(data.hundredths).padStart(2, '0')}`;
+    addResult(participantId, { distance: data.distance, time });
     setIsOpen(false);
     form.reset();
   };
@@ -83,19 +90,47 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Время</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ММ:СС.сс (например, 01:30.12)" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <FormLabel>Время</FormLabel>
+              <div className="grid grid-cols-3 gap-2">
+                <FormField
+                  control={form.control}
+                  name="minutes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="ММ" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="seconds"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="СС" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="hundredths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="сс" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormItem>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Отмена</Button>
               <Button type="submit">Добавить результат</Button>
