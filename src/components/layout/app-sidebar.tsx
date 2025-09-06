@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { Trophy, Home, BarChart3, Users } from 'lucide-react';
+import { Trophy, Home, BarChart3, Users, Scale } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/', label: 'Участники', icon: Home },
   { href: '/leaderboard', label: 'Рейтинг', icon: BarChart3 },
   { href: '/teams', label: 'Команды', icon: Users },
+  { href: '/scoring', label: 'Таблица баллов', icon: Scale },
 ];
 
 export function AppSidebar() {
