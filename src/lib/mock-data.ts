@@ -1,52 +1,93 @@
-import type { Participant } from './types';
+import type { Participant, Result, Gender, Category } from './types';
+import { Categories } from './types';
 
-const generateResults = (participantId: string) => {
-  const results = [];
-  const r1_500_time = `01:${(Math.floor(Math.random() * 20) + 35).toString().padStart(2, '0')}.${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
-  results.push({
-    id: `${participantId}-1`,
-    participantId,
-    distance: '500m' as const,
-    time: r1_500_time,
-  });
-  
-  const r1_1000_time = `03:${(Math.floor(Math.random() * 30) + 10).toString().padStart(2, '0')}.${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
-  results.push({
-    id: `${participantId}-2`,
-    participantId,
-    distance: '1000m' as const,
-    time: r1_1000_time,
-  });
+const MALE_NAMES = ['Александр', 'Дмитрий', 'Максим', 'Сергей', 'Андрей', 'Алексей', 'Иван', 'Михаил', 'Никита', 'Егор'];
+const FEMALE_NAMES = ['Анастасия', 'Мария', 'Анна', 'Екатерина', 'София', 'Дарья', 'Виктория', 'Полина', 'Арина', 'Елизавета'];
+const LAST_NAMES = ['Иванов', 'Смирнов', 'Кузнецов', 'Попов', 'Васильев', 'Петров', 'Соколов', 'Михайлов', 'Новиков', 'Федоров', 'Морозов', 'Волков'];
 
-  return results;
+const generateSchoolName = () => {
+  const type = Math.random() > 0.3 ? 'СОШ' : 'Гимназия';
+  const number = Math.floor(Math.random() * 150) + 1;
+  return `${type} №${number}`;
 };
 
+const SCHOOLS = Array.from({ length: 100 }, generateSchoolName);
 
-export const MOCK_PARTICIPANTS: Participant[] = [
-  { id: '1', name: 'Alice Johnson', team: 'Eagles', gender: 'Female', category: 'Senior', results: generateResults('1') },
-  { id: '2', name: 'Bob Smith', team: 'Lions', gender: 'Male', category: 'U20', results: generateResults('2') },
-  { id: '3', name: 'Charlie Brown', team: 'Eagles', gender: 'Male', category: 'Senior', results: generateResults('3') },
-  { id: '4', name: 'Diana Prince', team: 'Tigers', gender: 'Female', category: 'U20', results: generateResults('4') },
-  { id: '5', name: 'Ethan Hunt', team: 'Lions', gender: 'Male', category: 'Masters', results: generateResults('5') },
-  { id: '6', name: 'Fiona Glenanne', team: 'Tigers', gender: 'Female', category: 'Senior', results: generateResults('6') },
-  { id: '7', name: 'George Costanza', team: 'Vipers', gender: 'Male', category: 'Senior', results: generateResults('7') },
-  { id: '8', name: 'Helen Troy', team: 'Vipers', gender: 'Female', category: 'U20', results: generateResults('8') },
-  { id: '9', name: 'Ian Malcolm', team: 'Raptors', gender: 'Male', category: 'Masters', results: generateResults('9') },
-  { id: '10', name: 'Jane Eyre', team: 'Raptors', gender: 'Female', category: 'Senior', results: generateResults('10') },
-  { id: '11', name: 'Kyle Reese', team: 'Eagles', gender: 'Male', category: 'Senior', results: generateResults('11') },
-  { id: '12', name: 'Lara Croft', team: 'Eagles', gender: 'Female', category: 'Senior', results: generateResults('12') },
-  { id: '13', name: 'Michael Scott', team: 'Bears', gender: 'Male', category: 'Senior', results: generateResults('13') },
-  { id: '14', name: 'Nancy Drew', team: 'Bears', gender: 'Female', category: 'Senior', results: generateResults('14') },
-  { id: '15', name: 'Oscar Wilde', team: 'Lions', gender: 'Male', category: 'U20', results: generateResults('15') },
-  { id: '16', name: 'Pamela Beesly', team: 'Lions', gender: 'Female', category: 'U20', results: generateResults('16') },
-  { id: '17', name: 'Quentin Coldwater', team: 'Tigers', gender: 'Male', category: 'Senior', results: generateResults('17') },
-  { id: '18', name: 'Rachel Green', team: 'Tigers', gender: 'Female', category: 'Senior', results: generateResults('18') },
-  { id: '19', name: 'Steve Rogers', team: 'Vipers', gender: 'Male', category: 'Senior', results: generateResults('19') },
-  { id: '20', name: 'Trinity', team: 'Vipers', gender: 'Female', category: 'Senior', results: generateResults('20') },
-  { id: '21', name: 'Ulysses Everett McGill', team: 'Raptors', gender: 'Male', category: 'Masters', results: generateResults('21') },
-  { id: '22', name: 'Veronica Mars', team: 'Raptors', gender: 'Female', category: 'U20', results: generateResults('22') },
-  { id: '23', name: 'Walter White', team: 'Bears', gender: 'Male', category: 'Masters', results: generateResults('23') },
-  { id: '24', name: 'Xena', team: 'Bears', gender: 'Female', category: 'Masters', results: generateResults('24') },
-  { id: '25', name: 'Yoda', team: 'Eagles', gender: 'Male', category: 'Masters', results: generateResults('25') },
-  { id: '26', name: 'Zelda', team: 'Eagles', gender: 'Female', category: 'Masters', results: generateResults('26') },
-];
+const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+const generateTime = (distance: '500m' | '1000m'): string => {
+  if (distance === '500m') {
+    // 01:30.00 to 02:15.00
+    const seconds = Math.floor(Math.random() * 45) + 90;
+    const hundredths = Math.floor(Math.random() * 100);
+    const totalSeconds = seconds + hundredths / 100;
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    return `${String(min).padStart(2, '0')}:${sec.toFixed(2).padStart(5, '0')}`;
+  } else { // 1000m
+    // 03:10.00 to 04:30.00
+    const seconds = Math.floor(Math.random() * 80) + 190;
+    const hundredths = Math.floor(Math.random() * 100);
+    const totalSeconds = seconds + hundredths / 100;
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    return `${String(min).padStart(2, '0')}:${sec.toFixed(2).padStart(5, '0')}`;
+  }
+};
+
+const generateResults = (participantId: string, gender: Gender): Result[] => {
+  const results: Omit<Result, 'id' | 'participantId' | 'points'>[] = [];
+  
+  // All participants have at least one 500m result
+  results.push({
+    distance: '500m',
+    time: generateTime('500m'),
+  });
+
+  // Males also have a 1000m result
+  if (gender === 'Male') {
+    results.push({
+      distance: '1000m',
+      time: generateTime('1000m'),
+    });
+  }
+
+  // Some participants have a second 500m result
+  if (Math.random() > 0.5) {
+     results.push({
+      distance: '500m',
+      time: generateTime('500m'),
+    });
+  }
+  
+  return results.map((r, index) => ({
+    ...r,
+    id: `${participantId}-${index + 1}`,
+    participantId,
+    points: 0 // Points will be calculated in the provider
+  }));
+};
+
+const generateParticipants = (count: number): Participant[] => {
+  const participants: Participant[] = [];
+  for (let i = 1; i <= count; i++) {
+    const gender: Gender = Math.random() > 0.5 ? 'Male' : 'Female';
+    const firstName = gender === 'Male' ? getRandomItem(MALE_NAMES) : getRandomItem(FEMALE_NAMES);
+    const lastName = getRandomItem(LAST_NAMES) + (gender === 'Female' ? 'а' : '');
+    const category = getRandomItem(Categories);
+    
+    const participantId = i.toString();
+    
+    participants.push({
+      id: participantId,
+      name: `${firstName} ${lastName}`,
+      team: getRandomItem(SCHOOLS),
+      gender,
+      category,
+      results: generateResults(participantId, gender),
+    });
+  }
+  return participants;
+};
+
+export const MOCK_PARTICIPANTS: Participant[] = generateParticipants(600);

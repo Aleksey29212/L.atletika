@@ -11,7 +11,7 @@ export interface Result {
 export const Genders = ['Male', 'Female'] as const;
 export type Gender = (typeof Genders)[number];
 
-export const Categories = ['U18', 'U20', 'Senior', 'Masters'] as const;
+export const Categories = ['Младшая', 'Средняя', 'Старшая'] as const;
 export type Category = (typeof Categories)[number];
 
 export interface Participant {
