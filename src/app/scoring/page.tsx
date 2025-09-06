@@ -46,8 +46,7 @@ const ScoringPage = () => {
         <CardHeader>
           <CardTitle>Система начисления баллов</CardTitle>
           <CardDescription>
-            Баллы рассчитываются на основе времени результата. Чем меньше время,
-            тем больше баллов. Максимум — 100 баллов, минимум — 0.
+            Баллы рассчитываются по принципу арифметической прогрессии. Каждое улучшение времени приводит к пропорциональному увеличению баллов.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -56,7 +55,7 @@ const ScoringPage = () => {
             <p className="text-sm text-muted-foreground">
               Если результат спортсмена лучше или равен "золотому" времени, он получает 100 баллов.
               Если результат хуже или равен "базовому" времени, он получает 0 баллов.
-              В противном случае, баллы рассчитываются по формуле линейной интерполяции:
+              В противном случае, баллы рассчитываются по формуле линейной интерполяции, что обеспечивает справедливое распределение очков:
             </p>
             <pre className="mt-2 p-3 bg-muted rounded-md text-sm">
               <code>
@@ -87,7 +86,7 @@ const ScoringPage = () => {
                 {data500m.map((d) => (
                   <TableRow key={d.time}>
                     <TableCell>{d.time}</TableCell>
-                    <TableCell className="text-right">{d.points}</TableCell>
+                    <TableCell className="text-right">{d.points.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -114,7 +113,7 @@ const ScoringPage = () => {
                 {data1000m.map((d) => (
                   <TableRow key={d.time}>
                     <TableCell>{d.time}</TableCell>
-                    <TableCell className="text-right">{d.points}</TableCell>
+                    <TableCell className="text-right">{d.points.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -35,9 +35,9 @@ const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
               <TableCell className="font-bold text-lg">{rank}</TableCell>
               <TableCell className="font-medium">{participant.name}</TableCell>
               <TableCell>{participant.team}</TableCell>
-              <TableCell>{bestResults['500m']?.points ?? '–'}</TableCell>
-              <TableCell>{bestResults['1000m']?.points ?? '–'}</TableCell>
-              <TableCell className="text-right font-semibold">{totalPoints}</TableCell>
+              <TableCell>{bestResults['500m']?.points.toFixed(2) ?? '–'}</TableCell>
+              <TableCell>{bestResults['1000m']?.points.toFixed(2) ?? '–'}</TableCell>
+              <TableCell className="text-right font-semibold">{totalPoints.toFixed(2)}</TableCell>
             </TableRow>
           ))
         ) : (

@@ -133,14 +133,14 @@ export default function TeamsPage() {
                                 </Avatar>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{member.name} ({(member as any).points} очк.)</p>
+                                <p>{member.name} ({(member as any).points.toFixed(2)} очк.)</p>
                               </TooltipContent>
                             </Tooltip>
                           ))}
                         </TooltipProvider>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">{totalPoints}</TableCell>
+                      <TableCell className="text-right font-semibold">{totalPoints.toFixed(2)}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -189,7 +189,7 @@ export default function TeamsPage() {
                         <TableCell>{p.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                         <TableCell>{p.category}</TableCell>
                         <TableCell className="text-right font-semibold">
-                          {(p as any).points}
+                          {(p as any).points.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))
