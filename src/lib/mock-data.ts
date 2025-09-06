@@ -1,4 +1,4 @@
-import type { Participant, Result, Gender, Category } from './types';
+import type { Participant, Result, Gender, Category, Distance } from './types';
 import { Categories } from './types';
 
 const MALE_NAMES = ['Александр', 'Дмитрий', 'Максим', 'Сергей', 'Андрей', 'Алексей', 'Иван', 'Михаил', 'Никита', 'Егор'];
@@ -35,37 +35,26 @@ const generateTime = (distance: '500m' | '1000m'): string => {
   }
 };
 
-const generateResults = (participantId: string, gender: Gender): Result[] => {
-  const results: Omit<Result, 'id' | 'participantId' | 'points'>[] = [];
-  
-  // All participants have at least one 500m result
-  results.push({
-    distance: '500m',
-    time: generateTime('500m'),
-  });
-
-  // Males also have a 1000m result
-  if (gender === 'Male') {
-    results.push({
-      distance: '1000m',
-      time: generateTime('1000m'),
-    });
-  }
-
-  // Some participants have a second 500m result
-  if (Math.random() > 0.5) {
-     results.push({
-      distance: '500m',
-      time: generateTime('500m'),
-    });
+const generateResult = (participantId: string, gender: Gender): Result | null => {
+  // Not all participants may have a result
+  if (Math.random() < 0.1) {
+    return null;
   }
   
-  return results.map((r, index) => ({
-    ...r,
-    id: `${participantId}-${index + 1}`,
+  let distance: Distance;
+  if (gender === 'Female') {
+    distance = '500m';
+  } else {
+    distance = Math.random() > 0.5 ? '1000m' : '500m';
+  }
+  
+  return {
+    id: `${participantId}-result`,
     participantId,
+    distance,
+    time: generateTime(distance),
     points: 0 // Points will be calculated in the provider
-  }));
+  };
 };
 
 const generateParticipants = (count: number): Participant[] => {
@@ -84,7 +73,7 @@ const generateParticipants = (count: number): Participant[] => {
       team: getRandomItem(SCHOOLS),
       gender,
       category,
-      results: generateResults(participantId, gender),
+      result: generateResult(participantId, gender),
     });
   }
   return participants;

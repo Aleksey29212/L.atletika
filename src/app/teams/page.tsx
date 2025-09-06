@@ -19,7 +19,6 @@ const teamCompositions = [
 
 export default function TeamsPage() {
   const { participants } = useData();
-  const [distance, setDistance] = useState<Distance>('1000m');
   const [composition, setComposition] = useState('4-4');
 
   const { teams, unassignedParticipants } = useMemo<{
@@ -29,18 +28,12 @@ export default function TeamsPage() {
     const [malesNeeded, femalesNeeded] = composition.split('-').map(Number);
     
     const participantsWithScores = participants
-      .map(p => {
-        const bestResult = p.results
-          .filter(r => r.distance === distance)
-          .sort((a, b) => b.points - a.points)[0];
-        
-        return {
-          ...p,
-          points: bestResult ? bestResult.points : 0,
-          bestTimeString: bestResult ? bestResult.time : 'N/A',
-        };
-      })
-      .filter(p => p.points > 0);
+      .filter(p => p.result)
+      .map(p => ({
+        ...p,
+        points: p.result!.points,
+        bestTimeString: p.result!.time,
+      }));
 
     const teamsByOriginalName: { [key: string]: Participant[] } = {};
     participantsWithScores.forEach(p => {
@@ -75,7 +68,7 @@ export default function TeamsPage() {
     const unassigned = participantsWithScores.filter(p => !assignedIds.has(p.id));
 
     return { teams: finalTeams, unassignedParticipants: unassigned };
-  }, [participants, distance, composition]);
+  }, [participants, composition]);
 
   return (
     <div className="space-y-6">
@@ -83,20 +76,11 @@ export default function TeamsPage() {
         <CardHeader>
           <CardTitle>Рейтинги команд</CardTitle>
           <CardDescription>
-            Команды формируются из лучших участников каждой исходной команды в соответствии с выбранным составом и их очками на дистанции.
+            Команды формируются из лучших участников каждой исходной команды в соответствии с выбранным составом.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
-            <Select value={distance} onValueChange={(value) => setDistance(value as Distance)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Выберите дистанцию" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="500m">500м</SelectItem>
-                <SelectItem value="1000m">1000м</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={composition} onValueChange={setComposition}>
               <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="Выберите состав команды" />
@@ -146,7 +130,7 @@ export default function TeamsPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      Ни одна команда не соответствует выбранному составу и дистанции.
+                      Ни одна команда не соответствует выбранному составу.
                     </TableCell>
                   </TableRow>
                 )}
@@ -163,7 +147,7 @@ export default function TeamsPage() {
             Участники вне команд
           </CardTitle>
           <CardDescription>
-            Эти участники не были включены в квалификационную команду по выбранным критериям. Они ранжированы по их лучшим очкам на выбранной дистанции.
+            Эти участники не были включены в квалификационную команду по выбранным критериям. Они ранжированы по их очкам.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -174,8 +158,8 @@ export default function TeamsPage() {
                     <TableHead>Имя</TableHead>
                     <TableHead>Исходная команда</TableHead>
                     <TableHead>Пол</TableHead>
-                    <TableHead>Категория</TableHead>
-                    <TableHead className="text-right">Лучшие очки ({distance})</TableHead>
+                    <TableHead>Дистанция</TableHead>
+                    <TableHead className="text-right">Очки</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -187,7 +171,7 @@ export default function TeamsPage() {
                         <TableCell className="font-medium">{p.name}</TableCell>
                         <TableCell>{p.team}</TableCell>
                         <TableCell>{p.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
-                        <TableCell>{p.category}</TableCell>
+                        <TableCell>{p.result!.distance}</TableCell>
                         <TableCell className="text-right font-semibold">
                           {(p as any).points.toFixed(2)}
                         </TableCell>

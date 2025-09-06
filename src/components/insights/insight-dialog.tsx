@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { timeToSeconds } from '@/lib/utils';
 
 interface InsightDialogProps {
   isOpen: boolean;
@@ -25,11 +24,8 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
     setError(null);
     setInsights(null);
 
-    const participantHistory = participant.results.length > 0
-      ? participant.results
-          .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))
-          .map(r => `${r.distance}: ${r.time}`)
-          .join('; ')
+    const participantHistory = participant.result
+      ? `${participant.result.distance}: ${participant.result.time}`
       : 'Результаты еще не записаны.';
 
     try {
@@ -60,7 +56,7 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
         <DialogHeader>
           <DialogTitle>Инсайты по производительности для {participant.name}</DialogTitle>
           <DialogDescription>
-            Сгенерируйте инсайты на основе истории выступлений участника с помощью ИИ.
+            Сгенерируйте инсайты на основе результата участника с помощью ИИ.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">

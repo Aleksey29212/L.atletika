@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Distance } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import type { Participant, Distance } from '@/lib/types';
+import { timeToSeconds, secondsToTime } from '@/lib/utils';
 
 const formSchema = z.object({
   distance: z.enum(['500m', '1000m']),
@@ -25,12 +25,11 @@ type ResultFormValues = z.infer<typeof formSchema>;
 interface ResultDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  participantId: string;
+  participant: Participant | null;
 }
 
-export default function ResultDialog({ isOpen, setIsOpen, participantId }: ResultDialogProps) {
-  const { addResult, getParticipantById } = useData();
-  const participant = getParticipantById(participantId);
+export default function ResultDialog({ isOpen, setIsOpen, participant }: ResultDialogProps) {
+  const { addOrUpdateResult } = useData();
 
   const form = useForm<ResultFormValues>({
     resolver: zodResolver(formSchema),
@@ -42,10 +41,24 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     },
   });
 
-  React.useEffect(() => {
-    if (participant) {
+  useEffect(() => {
+    if (participant?.result) {
+      const existingTime = participant.result.time;
+      const totalSeconds = timeToSeconds(existingTime);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = Math.floor(totalSeconds % 60);
+      const hundredths = Math.round((totalSeconds - Math.floor(totalSeconds)) * 100);
+      
       form.reset({
-        distance: '500m',
+        distance: participant.result.distance,
+        minutes,
+        seconds,
+        hundredths,
+      });
+    } else {
+       const defaultDistance: Distance = participant?.gender === 'Female' ? '500m' : '1000m';
+       form.reset({
+        distance: defaultDistance,
         minutes: 0,
         seconds: 0,
         hundredths: 0,
@@ -54,19 +67,23 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   }, [participant, isOpen, form]);
 
   const onSubmit = (data: ResultFormValues) => {
+    if (!participant) return;
+    
     const time = `${String(data.minutes).padStart(2, '0')}:${String(data.seconds).padStart(2, '0')}.${String(data.hundredths).padStart(2, '0')}`;
-    addResult(participantId, { distance: data.distance, time });
+    addOrUpdateResult(participant.id, { distance: data.distance, time });
     setIsOpen(false);
     form.reset();
   };
 
   const availableDistances: Distance[] = participant?.gender === 'Female' ? ['500m'] : ['500m', '1000m'];
+  const title = participant?.result ? `Редактировать результат` : `Добавить результат для ${participant?.name}`;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Добавить результат для {participant?.name}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -76,7 +93,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Дистанция</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Выберите дистанцию" />
@@ -92,12 +109,13 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
             />
             <FormItem>
               <FormLabel>Время</FormLabel>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 items-start">
                 <FormField
                   control={form.control}
                   name="minutes"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground">Мин</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="ММ" {...field} />
                       </FormControl>
@@ -110,6 +128,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                   name="seconds"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground">Сек</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="СС" {...field} />
                       </FormControl>
@@ -122,6 +141,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
                   name="hundredths"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel className="text-xs text-muted-foreground">Сотые</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="сс" {...field} />
                       </FormControl>
@@ -133,7 +153,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
             </FormItem>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Отмена</Button>
-              <Button type="submit">Добавить результат</Button>
+              <Button type="submit">{participant?.result ? 'Сохранить изменения' : 'Добавить результат'}</Button>
             </DialogFooter>
           </form>
         </Form>

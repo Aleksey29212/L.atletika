@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Trash2, Edit, BarChart, Sparkles, FileUp, FileDown } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, BarChart, Sparkles, FileUp, FileDown, CheckCircle } from 'lucide-react';
 import ParticipantDialog from '@/components/participants/participant-dialog';
 import ResultDialog from '@/components/results/result-dialog';
 import InsightDialog from '@/components/insights/insight-dialog';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   const { participants, deleteParticipant } = useData();
@@ -32,14 +33,16 @@ export default function Home() {
     setParticipantDialogOpen(true);
   };
 
-  const handleAddResult = (participant: Participant) => {
+  const handleAddOrEditResult = (participant: Participant) => {
     setSelectedParticipant(participant);
     setResultDialogOpen(true);
   };
 
   const handleViewInsights = (participant: Participant) => {
-    setSelectedParticipant(participant);
-    setInsightDialogOpen(true);
+    if (participant.result) {
+      setSelectedParticipant(participant);
+      setInsightDialogOpen(true);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -85,6 +88,7 @@ export default function Home() {
                   <TableHead>Команда</TableHead>
                   <TableHead>Пол</TableHead>
                   <TableHead>Категория</TableHead>
+                  <TableHead>Результат</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -97,6 +101,16 @@ export default function Home() {
                       <TableCell>{participant.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                       <TableCell>{participant.category}</TableCell>
                       <TableCell>
+                        {participant.result ? (
+                          <Badge variant="secondary" className="font-mono">
+                            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                            {participant.result.distance}: {participant.result.time}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Нет результата</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
                          <AlertDialog>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -106,10 +120,10 @@ export default function Home() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleAddResult(participant)}>
-                                <BarChart className="mr-2 h-4 w-4" /> Добавить результат
+                              <DropdownMenuItem onClick={() => handleAddOrEditResult(participant)}>
+                                <BarChart className="mr-2 h-4 w-4" /> {participant.result ? 'Редактировать результат' : 'Добавить результат'}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewInsights(participant)}>
+                              <DropdownMenuItem onClick={() => handleViewInsights(participant)} disabled={!participant.result}>
                                 <Sparkles className="mr-2 h-4 w-4" /> Получить инсайты
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEdit(participant)}>
@@ -142,7 +156,7 @@ export default function Home() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       Участники не найдены.
                     </TableCell>
                   </TableRow>
@@ -165,7 +179,7 @@ export default function Home() {
         <ResultDialog
           isOpen={isResultDialogOpen}
           setIsOpen={setResultDialogOpen}
-          participantId={selectedParticipant.id}
+          participant={selectedParticipant}
         />
       )}
       

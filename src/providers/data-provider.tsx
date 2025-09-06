@@ -7,10 +7,10 @@ import { calculateScore } from '@/lib/utils';
 
 interface DataContextType {
   participants: Participant[];
-  addParticipant: (participant: Omit<Participant, 'id' | 'results'>) => void;
-  updateParticipant: (id: string, participant: Omit<Participant, 'id' | 'results'>) => void;
+  addParticipant: (participant: Omit<Participant, 'id' | 'result'>) => void;
+  updateParticipant: (id: string, participant: Omit<Participant, 'id' | 'result'>) => void;
   deleteParticipant: (id: string) => void;
-  addResult: (participantId: string, result: Omit<Result, 'id' | 'participantId' | 'points'>) => void;
+  addOrUpdateResult: (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => void;
   getParticipantById: (id: string) => Participant | undefined;
 }
 
@@ -19,24 +19,24 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const initialParticipants = useMemo(() => MOCK_PARTICIPANTS.map(p => ({
       ...p,
-      results: p.results.map(r => ({
-        ...r,
-        points: calculateScore(r.distance, r.time)
-      }))
+      result: p.result ? {
+        ...p.result,
+        points: calculateScore(p.result.distance, p.result.time)
+      } : null
   })), []);
 
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
 
-  const addParticipant = (participantData: Omit<Participant, 'id' | 'results'>) => {
+  const addParticipant = (participantData: Omit<Participant, 'id' | 'result'>) => {
     const newParticipant: Participant = {
       ...participantData,
       id: new Date().toISOString(),
-      results: [],
+      result: null,
     };
     setParticipants(prev => [...prev, newParticipant]);
   };
 
-  const updateParticipant = (id: string, participantData: Omit<Participant, 'id' | 'results'>) => {
+  const updateParticipant = (id: string, participantData: Omit<Participant, 'id' | 'result'>) => {
     setParticipants(prev =>
       prev.map(p => (p.id === id ? { ...p, ...participantData } : p))
     );
@@ -46,7 +46,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setParticipants(prev => prev.filter(p => p.id !== id));
   };
 
-  const addResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => {
+  const addOrUpdateResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => {
     const newResult: Result = {
       ...resultData,
       id: new Date().toISOString(),
@@ -57,7 +57,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setParticipants(prev =>
       prev.map(p =>
         p.id === participantId
-          ? { ...p, results: [...p.results, newResult] }
+          ? { ...p, result: newResult }
           : p
       )
     );
@@ -74,7 +74,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addParticipant,
         updateParticipant,
         deleteParticipant,
-        addResult,
+        addOrUpdateResult,
         getParticipantById,
       }}
     >
