@@ -16,6 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Papa from 'papaparse';
 
 export default function Home() {
   const { participants, deleteParticipant, recalculateAllScores } = useData();
@@ -59,6 +60,34 @@ export default function Home() {
   const handleDelete = (id: string) => {
     deleteParticipant(id);
   };
+
+  const handleExport = () => {
+    const dataToExport = participants.map(p => ({
+      'Имя': p.name,
+      'Команда': p.team,
+      'Пол': p.gender === 'Male' ? 'Мужской' : 'Женский',
+      'Категория': p.category,
+      'Дистанция': p.result?.distance || 'N/A',
+      'Время': p.result?.time || 'N/A',
+      'Очки': p.result?.points.toFixed(2) || 'N/A'
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'participants_export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Экспорт завершен",
+      description: "Данные участников были успешно выгружены в CSV файл.",
+    });
+  };
   
   const filteredParticipants = useMemo(() => {
     if (!searchQuery) return participants;
@@ -75,7 +104,7 @@ export default function Home() {
           <CardTitle>Участники</CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" disabled><FileUp className="mr-2 h-4 w-4" /> Импорт</Button>
-            <Button variant="outline" size="sm" disabled><FileDown className="mr-2 h-4 w-4" /> Экспорт</Button>
+            <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт</Button>
             <Button onClick={handleRecalculate} size="sm" variant="secondary">
               <Calculator className="mr-2 h-4 w-4" />
               Вычислить результаты
