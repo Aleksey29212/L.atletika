@@ -8,8 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { timeToSeconds, secondsToTime } from '@/lib/utils';
-import { Users, Info } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 const teamCompositions = [
   { label: '3 Мужчины + 3 Женщины', value: '3-3' },
@@ -28,24 +27,23 @@ export default function TeamsPage() {
     unassignedParticipants: Participant[];
   }>(() => {
     const [malesNeeded, femalesNeeded] = composition.split('-').map(Number);
-    const teamSize = malesNeeded + femalesNeeded;
-
-    const participantsWithTimes = participants
+    
+    const participantsWithScores = participants
       .map(p => {
         const bestResult = p.results
           .filter(r => r.distance === distance)
-          .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))[0];
+          .sort((a, b) => b.points - a.points)[0];
         
         return {
           ...p,
-          bestTime: bestResult ? timeToSeconds(bestResult.time) : Infinity,
+          points: bestResult ? bestResult.points : 0,
           bestTimeString: bestResult ? bestResult.time : 'N/A',
         };
       })
-      .filter(p => p.bestTime !== Infinity);
+      .filter(p => p.points > 0);
 
     const teamsByOriginalName: { [key: string]: Participant[] } = {};
-    participantsWithTimes.forEach(p => {
+    participantsWithScores.forEach(p => {
       if (!teamsByOriginalName[p.team]) {
         teamsByOriginalName[p.team] = [];
       }
@@ -56,26 +54,25 @@ export default function TeamsPage() {
     const assignedIds = new Set<string>();
 
     Object.entries(teamsByOriginalName).forEach(([teamName, members]) => {
-      const males = members.filter(m => m.gender === 'Male').sort((a, b) => a.bestTime - b.bestTime);
-      const females = members.filter(m => m.gender === 'Female').sort((a, b) => a.bestTime - b.bestTime);
+      const males = members.filter(m => m.gender === 'Male').sort((a, b) => (b as any).points - (a as any).points);
+      const females = members.filter(m => m.gender === 'Female').sort((a, b) => (b as any).points - (a as any).points);
 
       if (males.length >= malesNeeded && females.length >= femalesNeeded) {
         const teamMembers = [...males.slice(0, malesNeeded), ...females.slice(0, femalesNeeded)];
-        const totalTime = teamMembers.reduce((sum, m) => sum + m.bestTime, 0);
+        const totalPoints = teamMembers.reduce((sum, m) => sum + (m as any).points, 0);
         
         teamMembers.forEach(m => assignedIds.add(m.id));
 
         finalTeams.push({
           name: teamName,
           members: teamMembers,
-          totalTime: totalTime,
-          totalTimeString: secondsToTime(totalTime),
+          totalPoints: totalPoints,
         });
       }
     });
 
-    finalTeams.sort((a, b) => a.totalTime - b.totalTime);
-    const unassigned = participantsWithTimes.filter(p => !assignedIds.has(p.id));
+    finalTeams.sort((a, b) => b.totalPoints - a.totalPoints);
+    const unassigned = participantsWithScores.filter(p => !assignedIds.has(p.id));
 
     return { teams: finalTeams, unassignedParticipants: unassigned };
   }, [participants, distance, composition]);
@@ -86,7 +83,7 @@ export default function TeamsPage() {
         <CardHeader>
           <CardTitle>Рейтинги команд</CardTitle>
           <CardDescription>
-            Команды формируются из лучших участников каждой исходной команды в соответствии с выбранным составом.
+            Команды формируются из лучших участников каждой исходной команды в соответствии с выбранным составом и их очками на дистанции.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -116,12 +113,12 @@ export default function TeamsPage() {
                   <TableHead className="w-[80px]">Ранг</TableHead>
                   <TableHead>Команда</TableHead>
                   <TableHead>Участники</TableHead>
-                  <TableHead className="text-right">Общее время</TableHead>
+                  <TableHead className="text-right">Всего очков</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {teams.length > 0 ? (
-                  teams.map(({ name, totalTimeString, members }, index) => (
+                  teams.map(({ name, totalPoints, members }, index) => (
                     <TableRow key={name}>
                       <TableCell className="font-bold text-lg">{index + 1}</TableCell>
                       <TableCell className="font-medium">{name}</TableCell>
@@ -136,14 +133,14 @@ export default function TeamsPage() {
                                 </Avatar>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{member.name} ({member.bestTimeString})</p>
+                                <p>{member.name} ({(member as any).points} очк.)</p>
                               </TooltipContent>
                             </Tooltip>
                           ))}
                         </TooltipProvider>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold">{totalTimeString}</TableCell>
+                      <TableCell className="text-right font-semibold">{totalPoints}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -166,7 +163,7 @@ export default function TeamsPage() {
             Участники вне команд
           </CardTitle>
           <CardDescription>
-            Эти участники не были включены в квалификационную команду по выбранным критериям. Они ранжированы по их лучшему индивидуальному времени на выбранной дистанции.
+            Эти участники не были включены в квалификационную команду по выбранным критериям. Они ранжированы по их лучшим очкам на выбранной дистанции.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -178,13 +175,13 @@ export default function TeamsPage() {
                     <TableHead>Исходная команда</TableHead>
                     <TableHead>Пол</TableHead>
                     <TableHead>Категория</TableHead>
-                    <TableHead className="text-right">Лучшее время ({distance})</TableHead>
+                    <TableHead className="text-right">Лучшие очки ({distance})</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {unassignedParticipants.length > 0 ? (
                     unassignedParticipants
-                      .sort((a,b) => a.bestTime - b.bestTime)
+                      .sort((a,b) => (b as any).points - (a as any).points)
                       .map((p) => (
                       <TableRow key={p.id}>
                         <TableCell className="font-medium">{p.name}</TableCell>
@@ -192,14 +189,14 @@ export default function TeamsPage() {
                         <TableCell>{p.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                         <TableCell>{p.category}</TableCell>
                         <TableCell className="text-right font-semibold">
-                          {(p as any).bestTimeString}
+                          {(p as any).points}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center">
-                        Все участники распределены по командам.
+                        Все квалифицированные участники распределены по командам.
                       </TableCell>
                     </TableRow>
                   )}

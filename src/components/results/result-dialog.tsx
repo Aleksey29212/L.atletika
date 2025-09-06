@@ -40,6 +40,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
   const onSubmit = (data: ResultFormValues) => {
     addResult(participantId, data);
     setIsOpen(false);
+    form.reset();
   };
 
   const distances: Distance[] = ['500m', '1000m'];

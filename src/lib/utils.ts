@@ -21,3 +21,20 @@ export function secondsToTime(seconds: number): string {
   const sec = seconds % 60;
   return `${String(min).padStart(2, '0')}:${sec.toFixed(2).padStart(5, '0')}`;
 }
+
+const scoreConfig = {
+  '500m': { gold: timeToSeconds('01:30.00'), base: timeToSeconds('02:15.00') },
+  '1000m': { gold: timeToSeconds('03:10.00'), base: timeToSeconds('04:30.00') },
+};
+
+export function calculateScore(distance: Distance, time: string): number {
+  const timeInSeconds = timeToSeconds(time);
+  const config = scoreConfig[distance];
+
+  if (timeInSeconds >= config.base) return 0;
+  if (timeInSeconds <= config.gold) return 100;
+
+  const score = ((config.base - timeInSeconds) / (config.base - config.gold)) * 100;
+  
+  return Math.round(score);
+}

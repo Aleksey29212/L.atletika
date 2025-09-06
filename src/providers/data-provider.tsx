@@ -1,22 +1,31 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import type { Participant, Result } from '@/lib/types';
 import { MOCK_PARTICIPANTS } from '@/lib/mock-data';
+import { calculateScore } from '@/lib/utils';
 
 interface DataContextType {
   participants: Participant[];
   addParticipant: (participant: Omit<Participant, 'id' | 'results'>) => void;
   updateParticipant: (id: string, participant: Omit<Participant, 'id' | 'results'>) => void;
   deleteParticipant: (id: string) => void;
-  addResult: (participantId: string, result: Omit<Result, 'id' | 'participantId'>) => void;
+  addResult: (participantId: string, result: Omit<Result, 'id' | 'participantId' | 'points'>) => void;
   getParticipantById: (id: string) => Participant | undefined;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const [participants, setParticipants] = useState<Participant[]>(MOCK_PARTICIPANTS);
+  const initialParticipants = useMemo(() => MOCK_PARTICIPANTS.map(p => ({
+      ...p,
+      results: p.results.map(r => ({
+        ...r,
+        points: calculateScore(r.distance, r.time)
+      }))
+  })), []);
+
+  const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
 
   const addParticipant = (participantData: Omit<Participant, 'id' | 'results'>) => {
     const newParticipant: Participant = {
@@ -37,11 +46,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setParticipants(prev => prev.filter(p => p.id !== id));
   };
 
-  const addResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId'>) => {
+  const addResult = (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => {
     const newResult: Result = {
       ...resultData,
       id: new Date().toISOString(),
       participantId: participantId,
+      points: calculateScore(resultData.distance, resultData.time)
     };
 
     setParticipants(prev =>

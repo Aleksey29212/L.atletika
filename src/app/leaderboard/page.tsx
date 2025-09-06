@@ -2,21 +2,20 @@
 
 import React, { useMemo, useState } from 'react';
 import { useData } from '@/providers/data-provider';
-import type { Participant, Gender, Category, Distance } from '@/lib/types';
+import type { Participant, Gender, Category, Distance, Result } from '@/lib/types';
 import { Genders, Categories } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { timeToSeconds } from '@/lib/utils';
 
 type LeaderboardEntry = {
   rank: number;
   participant: Participant;
-  time: string;
+  totalPoints: number;
+  bestResults: { [key in Distance]?: { time: string; points: number } };
 };
 
-const LeaderboardTable = ({ entries, distance }: { entries: LeaderboardEntry[]; distance: Distance | 'Overall' }) => (
+const LeaderboardTable = ({ entries }: { entries: LeaderboardEntry[] }) => (
   <div className="rounded-md border">
     <Table>
       <TableHeader>
@@ -24,21 +23,21 @@ const LeaderboardTable = ({ entries, distance }: { entries: LeaderboardEntry[]; 
           <TableHead className="w-[80px]">Ранг</TableHead>
           <TableHead>Имя</TableHead>
           <TableHead>Команда</TableHead>
-          <TableHead>Пол</TableHead>
-          <TableHead>Категория</TableHead>
-          <TableHead>Лучшее время ({distance})</TableHead>
+          <TableHead>Очки (500м)</TableHead>
+          <TableHead>Очки (1000м)</TableHead>
+          <TableHead className="text-right">Всего очков</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {entries.length > 0 ? (
-          entries.map(({ rank, participant, time }) => (
+          entries.map(({ rank, participant, totalPoints, bestResults }) => (
             <TableRow key={participant.id}>
               <TableCell className="font-bold text-lg">{rank}</TableCell>
               <TableCell className="font-medium">{participant.name}</TableCell>
               <TableCell>{participant.team}</TableCell>
-              <TableCell>{participant.gender}</TableCell>
-              <TableCell>{participant.category}</TableCell>
-              <TableCell className="font-semibold">{time}</TableCell>
+              <TableCell>{bestResults['500m']?.points ?? '–'}</TableCell>
+              <TableCell>{bestResults['1000m']?.points ?? '–'}</TableCell>
+              <TableCell className="text-right font-semibold">{totalPoints}</TableCell>
             </TableRow>
           ))
         ) : (
@@ -58,36 +57,37 @@ export default function LeaderboardPage() {
   const [genderFilter, setGenderFilter] = useState<Gender | 'All'>('All');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
 
-  const filteredParticipants = useMemo(() => {
-    return participants.filter(p => 
+  const leaderboardEntries = useMemo((): LeaderboardEntry[] => {
+    const filteredParticipants = participants.filter(p => 
       (genderFilter === 'All' || p.gender === genderFilter) &&
       (categoryFilter === 'All' || p.category === categoryFilter)
     );
-  }, [participants, genderFilter, categoryFilter]);
-  
-  const getBestTime = (participant: Participant, distance: Distance) => {
-    const bestResult = participant.results
-      .filter(r => r.distance === distance)
-      .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))[0];
-    return bestResult ? bestResult.time : null;
-  };
-  
-  const distanceLeaderboard = (distance: Distance): LeaderboardEntry[] => {
-    return filteredParticipants
-      .map(p => ({
-        participant: p,
-        time: getBestTime(p, distance),
-      }))
-      .filter((entry): entry is { participant: Participant; time: string } => entry.time !== null)
-      .sort((a, b) => timeToSeconds(a.time) - timeToSeconds(b.time))
-      .map((p, index) => ({ ...p, rank: index + 1 }));
-  };
 
-  const overallLeaderboard = useMemo((): LeaderboardEntry[] => {
-     // For "Overall", we just show the 1000m leaderboard as a default.
-     // A true "overall" score is not well-defined with just time.
-    return distanceLeaderboard('1000m');
-  }, [filteredParticipants]);
+    return filteredParticipants
+      .map(p => {
+        const best500m = p.results
+          .filter(r => r.distance === '500m')
+          .sort((a, b) => b.points - a.points)[0];
+        
+        const best1000m = p.results
+          .filter(r => r.distance === '1000m')
+          .sort((a, b) => b.points - a.points)[0];
+
+        const totalPoints = (best500m?.points || 0) + (best1000m?.points || 0);
+        
+        return {
+          participant: p,
+          totalPoints,
+          bestResults: {
+            '500m': best500m,
+            '1000m': best1000m,
+          },
+        };
+      })
+      .filter(entry => entry.totalPoints > 0)
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .map((entry, index) => ({ ...entry, rank: index + 1 }));
+  }, [participants, genderFilter, categoryFilter]);
 
   return (
     <Card>
@@ -115,18 +115,7 @@ export default function LeaderboardPage() {
               </SelectContent>
             </Select>
         </div>
-        <Tabs defaultValue="1000m" className="w-full">
-          <TabsList>
-            <TabsTrigger value="500m">500м</TabsTrigger>
-            <TabsTrigger value="1000m">1000м</TabsTrigger>
-          </TabsList>
-          <TabsContent value="500m" className="mt-4">
-            <LeaderboardTable entries={distanceLeaderboard('500m')} distance="500m" />
-          </TabsContent>
-          <TabsContent value="1000m" className="mt-4">
-            <LeaderboardTable entries={distanceLeaderboard('1000m')} distance="1000m"/>
-          </TabsContent>
-        </Tabs>
+        <LeaderboardTable entries={leaderboardEntries} />
       </CardContent>
     </Card>
   );

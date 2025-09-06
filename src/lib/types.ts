@@ -5,6 +5,7 @@ export interface Result {
   participantId: string;
   distance: Distance;
   time: string; // "MM:SS.ss" e.g., "01:30.12"
+  points: number;
 }
 
 export const Genders = ['Male', 'Female'] as const;
@@ -24,7 +25,6 @@ export interface Participant {
 
 export interface Team {
   name: string;
-  totalTime: number; // in seconds
-  totalTimeString: string;
-  members: (Participant & { bestTimeString?: string })[];
+  totalPoints: number;
+  members: (Participant & { bestTimeString?: string; points?: number })[];
 }
