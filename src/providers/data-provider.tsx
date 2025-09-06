@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback, useEffect } from 'react';
 import type { Participant, Result } from '@/lib/types';
 import { MOCK_PARTICIPANTS } from '@/lib/mock-data';
 import { calculateScore } from '@/lib/utils';
@@ -18,15 +18,23 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const initialParticipants = useMemo(() => MOCK_PARTICIPANTS.map(p => ({
-      ...p,
-      result: p.result ? {
-        ...p.result,
-        points: calculateScore(p.result.distance, p.result.time)
-      } : null
-  })), []);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isDataInitialized, setDataInitialized] = useState(false);
 
-  const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
+  useEffect(() => {
+    if (!isDataInitialized) {
+      const initialParticipants = MOCK_PARTICIPANTS.map(p => ({
+        ...p,
+        result: p.result ? {
+          ...p.result,
+          points: calculateScore(p.result.distance, p.result.time)
+        } : null
+      }));
+      setParticipants(initialParticipants);
+      setDataInitialized(true);
+    }
+  }, [isDataInitialized]);
+
 
   const addParticipant = (participantData: Omit<Participant, 'id' | 'result'>) => {
     const newParticipant: Participant = {
@@ -84,6 +92,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const getParticipantById = (id: string) => {
     return participants.find(p => p.id === id);
+  }
+  
+  if (!isDataInitialized) {
+    // You can return a loader here if you want
+    return null;
   }
 
   return (
