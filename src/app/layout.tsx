@@ -7,8 +7,8 @@ import { AppHeader } from '@/components/layout/app-header';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Track & Field Stats',
-  description: 'Manage and analyze track and field participant data.',
+  title: 'Статистика по легкой атлетике',
+  description: 'Управление и анализ данных участников соревнований по легкой атлетике.',
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

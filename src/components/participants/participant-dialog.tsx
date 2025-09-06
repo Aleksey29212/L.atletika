@@ -14,8 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  team: z.string().min(2, { message: "Team name must be at least 2 characters." }),
+  name: z.string().min(2, { message: "Имя должно содержать не менее 2 символов." }),
+  team: z.string().min(2, { message: "Название команды должно содержать не менее 2 символов." }),
   gender: z.enum(Genders),
   category: z.enum(Categories),
 });
@@ -71,7 +71,7 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{participant ? 'Edit Participant' : 'Add Participant'}</DialogTitle>
+          <DialogTitle>{participant ? 'Редактировать участника' : 'Добавить участника'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -80,9 +80,9 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Имя</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. John Doe" {...field} />
+                    <Input placeholder="например, Иван Иванов" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,9 +93,9 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
               name="team"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team</FormLabel>
+                  <FormLabel>Команда</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Eagles" {...field} />
+                    <Input placeholder="например, Орлы" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,15 +106,15 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gender</FormLabel>
+                  <FormLabel>Пол</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a gender" />
+                        <SelectValue placeholder="Выберите пол" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Genders.map(gender => <SelectItem key={gender} value={gender}>{gender}</SelectItem>)}
+                      {Genders.map(gender => <SelectItem key={gender} value={gender}>{gender === 'Male' ? 'Мужской' : 'Женский'}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -126,11 +126,11 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>Категория</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder="Выберите категорию" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -142,8 +142,8 @@ export default function ParticipantDialog({ isOpen, setIsOpen, participant }: Pa
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button type="submit">Save</Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Отмена</Button>
+              <Button type="submit">Сохранить</Button>
             </DialogFooter>
           </form>
         </Form>

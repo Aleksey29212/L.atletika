@@ -26,5 +26,5 @@ export interface Team {
   name: string;
   totalTime: number; // in seconds
   totalTimeString: string;
-  members: Participant[];
+  members: (Participant & { bestTimeString?: string })[];
 }

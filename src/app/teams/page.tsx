@@ -12,10 +12,10 @@ import { timeToSeconds, secondsToTime } from '@/lib/utils';
 import { Users, Info } from 'lucide-react';
 
 const teamCompositions = [
-  { label: '3 Males + 3 Females', value: '3-3' },
-  { label: '4 Males + 4 Females', value: '4-4' },
-  { label: '5 Males + 5 Females', value: '5-5' },
-  { label: '6 Males + 6 Females', value: '6-6' },
+  { label: '3 Мужчины + 3 Женщины', value: '3-3' },
+  { label: '4 Мужчины + 4 Женщины', value: '4-4' },
+  { label: '5 Мужчин + 5 Женщин', value: '5-5' },
+  { label: '6 Мужчин + 6 Женщин', value: '6-6' },
 ];
 
 export default function TeamsPage() {
@@ -84,25 +84,25 @@ export default function TeamsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Team Rankings</CardTitle>
+          <CardTitle>Рейтинги команд</CardTitle>
           <CardDescription>
-            Teams are formed based on the best performers from each original team, according to the selected composition.
+            Команды формируются из лучших участников каждой исходной команды в соответствии с выбранным составом.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
             <Select value={distance} onValueChange={(value) => setDistance(value as Distance)}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Distance" />
+                <SelectValue placeholder="Выберите дистанцию" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="500m">500m</SelectItem>
-                <SelectItem value="1000m">1000m</SelectItem>
+                <SelectItem value="500m">500м</SelectItem>
+                <SelectItem value="1000m">1000м</SelectItem>
               </SelectContent>
             </Select>
             <Select value={composition} onValueChange={setComposition}>
               <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Select Team Composition" />
+                <SelectValue placeholder="Выберите состав команды" />
               </SelectTrigger>
               <SelectContent>
                 {teamCompositions.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
@@ -113,10 +113,10 @@ export default function TeamsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px]">Rank</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead className="text-right">Total Time</TableHead>
+                  <TableHead className="w-[80px]">Ранг</TableHead>
+                  <TableHead>Команда</TableHead>
+                  <TableHead>Участники</TableHead>
+                  <TableHead className="text-right">Общее время</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -149,7 +149,7 @@ export default function TeamsPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      No teams qualify for the selected composition and distance.
+                      Ни одна команда не соответствует выбранному составу и дистанции.
                     </TableCell>
                   </TableRow>
                 )}
@@ -163,10 +163,10 @@ export default function TeamsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-6 w-6" />
-            Participants Not in Teams
+            Участники вне команд
           </CardTitle>
           <CardDescription>
-            These participants were not included in a qualifying team for the selected criteria. They are ranked by their individual best time for the chosen distance.
+            Эти участники не были включены в квалификационную команду по выбранным критериям. Они ранжированы по их лучшему индивидуальному времени на выбранной дистанции.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -174,11 +174,11 @@ export default function TeamsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Original Team</TableHead>
-                    <TableHead>Gender</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Best Time ({distance})</TableHead>
+                    <TableHead>Имя</TableHead>
+                    <TableHead>Исходная команда</TableHead>
+                    <TableHead>Пол</TableHead>
+                    <TableHead>Категория</TableHead>
+                    <TableHead className="text-right">Лучшее время ({distance})</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -189,7 +189,7 @@ export default function TeamsPage() {
                       <TableRow key={p.id}>
                         <TableCell className="font-medium">{p.name}</TableCell>
                         <TableCell>{p.team}</TableCell>
-                        <TableCell>{p.gender}</TableCell>
+                        <TableCell>{p.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                         <TableCell>{p.category}</TableCell>
                         <TableCell className="text-right font-semibold">
                           {(p as any).bestTimeString}
@@ -199,7 +199,7 @@ export default function TeamsPage() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center">
-                        All participants are assigned to a team.
+                        Все участники распределены по командам.
                       </TableCell>
                     </TableRow>
                   )}

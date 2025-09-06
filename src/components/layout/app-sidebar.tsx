@@ -8,9 +8,9 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: 'Participants', icon: Home },
-  { href: '/leaderboard', label: 'Leaderboard', icon: BarChart3 },
-  { href: '/teams', label: 'Teams', icon: Users },
+  { href: '/', label: 'Участники', icon: Home },
+  { href: '/leaderboard', label: 'Рейтинг', icon: BarChart3 },
+  { href: '/teams', label: 'Команды', icon: Users },
 ];
 
 export function AppSidebar() {

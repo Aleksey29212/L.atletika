@@ -58,20 +58,20 @@ export default function Home() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Participants</CardTitle>
+          <CardTitle>Участники</CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled><FileUp className="mr-2 h-4 w-4" /> Import</Button>
-            <Button variant="outline" size="sm" disabled><FileDown className="mr-2 h-4 w-4" /> Export</Button>
+            <Button variant="outline" size="sm" disabled><FileUp className="mr-2 h-4 w-4" /> Импорт</Button>
+            <Button variant="outline" size="sm" disabled><FileDown className="mr-2 h-4 w-4" /> Экспорт</Button>
             <Button onClick={handleAddNew} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Participant
+              Добавить участника
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
             <Input 
-              placeholder="Search by name or team..."
+              placeholder="Поиск по имени или команде..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
@@ -81,10 +81,10 @@ export default function Home() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Team</TableHead>
-                  <TableHead>Gender</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Имя</TableHead>
+                  <TableHead>Команда</TableHead>
+                  <TableHead>Пол</TableHead>
+                  <TableHead>Категория</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -94,45 +94,45 @@ export default function Home() {
                     <TableRow key={participant.id}>
                       <TableCell className="font-medium">{participant.name}</TableCell>
                       <TableCell>{participant.team}</TableCell>
-                      <TableCell>{participant.gender}</TableCell>
+                      <TableCell>{participant.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                       <TableCell>{participant.category}</TableCell>
                       <TableCell>
                          <AlertDialog>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
+                                <span className="sr-only">Открыть меню</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleAddResult(participant)}>
-                                <BarChart className="mr-2 h-4 w-4" /> Add Result
+                                <BarChart className="mr-2 h-4 w-4" /> Добавить результат
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleViewInsights(participant)}>
-                                <Sparkles className="mr-2 h-4 w-4" /> Get Insights
+                                <Sparkles className="mr-2 h-4 w-4" /> Получить инсайты
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEdit(participant)}>
-                                <Edit className="mr-2 h-4 w-4" /> Edit
+                                <Edit className="mr-2 h-4 w-4" /> Редактировать
                               </DropdownMenuItem>
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem className="text-destructive">
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  <Trash2 className="mr-2 h-4 w-4" /> Удалить
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                             </DropdownMenuContent>
                           </DropdownMenu>
                            <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the participant and all their results.
+                                Это действие нельзя отменить. Это навсегда удалит участника и все его результаты.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Отмена</AlertDialogCancel>
                               <AlertDialogAction onClick={() => handleDelete(participant.id)} className="bg-destructive hover:bg-destructive/90">
-                                Delete
+                                Удалить
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -143,7 +143,7 @@ export default function Home() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                      No participants found.
+                      Участники не найдены.
                     </TableCell>
                   </TableRow>
                 )}

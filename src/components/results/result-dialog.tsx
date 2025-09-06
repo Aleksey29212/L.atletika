@@ -14,7 +14,7 @@ import type { Distance } from '@/lib/types';
 
 const formSchema = z.object({
   distance: z.enum(['500m', '1000m']),
-  time: z.string().regex(/^\d{2}:\d{2}\.\d{2}$/, { message: "Time must be in MM:SS.ss format (e.g., 01:30.12)" }),
+  time: z.string().regex(/^\d{2}:\d{2}\.\d{2}$/, { message: "Время должно быть в формате ММ:СС.сс (например, 01:30.12)" }),
 });
 
 type ResultFormValues = z.infer<typeof formSchema>;
@@ -48,7 +48,7 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Result for {participant?.name}</DialogTitle>
+          <DialogTitle>Добавить результат для {participant?.name}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -57,11 +57,11 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
               name="distance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Distance</FormLabel>
+                  <FormLabel>Дистанция</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a distance" />
+                        <SelectValue placeholder="Выберите дистанцию" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -77,17 +77,17 @@ export default function ResultDialog({ isOpen, setIsOpen, participantId }: Resul
               name="time"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Time</FormLabel>
+                  <FormLabel>Время</FormLabel>
                   <FormControl>
-                    <Input placeholder="MM:SS.ss (e.g., 01:30.12)" {...field} />
+                    <Input placeholder="ММ:СС.сс (например, 01:30.12)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button type="submit">Add Result</Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Отмена</Button>
+              <Button type="submit">Добавить результат</Button>
             </DialogFooter>
           </form>
         </Form>

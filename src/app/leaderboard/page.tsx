@@ -21,12 +21,12 @@ const LeaderboardTable = ({ entries, distance }: { entries: LeaderboardEntry[]; 
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[80px]">Rank</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Team</TableHead>
-          <TableHead>Gender</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Best Time ({distance})</TableHead>
+          <TableHead className="w-[80px]">Ранг</TableHead>
+          <TableHead>Имя</TableHead>
+          <TableHead>Команда</TableHead>
+          <TableHead>Пол</TableHead>
+          <TableHead>Категория</TableHead>
+          <TableHead>Лучшее время ({distance})</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -44,7 +44,7 @@ const LeaderboardTable = ({ entries, distance }: { entries: LeaderboardEntry[]; 
         ) : (
           <TableRow>
             <TableCell colSpan={6} className="h-24 text-center">
-              No results to display.
+              Нет результатов для отображения.
             </TableCell>
           </TableRow>
         )}
@@ -92,33 +92,33 @@ export default function LeaderboardPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Personal Rankings</CardTitle>
+        <CardTitle>Личные рейтинги</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">
             <Select value={genderFilter} onValueChange={(value) => setGenderFilter(value as Gender | 'All')}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by gender" />
+                <SelectValue placeholder="Фильтр по полу" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Genders</SelectItem>
-                {Genders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                <SelectItem value="All">Все</SelectItem>
+                {Genders.map(g => <SelectItem key={g} value={g}>{g === 'Male' ? 'Мужской' : 'Женский'}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as Category | 'All')}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by category" />
+                <SelectValue placeholder="Фильтр по категории" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">All Categories</SelectItem>
+                <SelectItem value="All">Все категории</SelectItem>
                 {Categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
         </div>
         <Tabs defaultValue="1000m" className="w-full">
           <TabsList>
-            <TabsTrigger value="500m">500m</TabsTrigger>
-            <TabsTrigger value="1000m">1000m</TabsTrigger>
+            <TabsTrigger value="500m">500м</TabsTrigger>
+            <TabsTrigger value="1000m">1000м</TabsTrigger>
           </TabsList>
           <TabsContent value="500m" className="mt-4">
             <LeaderboardTable entries={distanceLeaderboard('500m')} distance="500m" />
