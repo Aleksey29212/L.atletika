@@ -56,7 +56,7 @@ const generateResult = (participantId: string, gender: Gender): Result | null =>
   };
 };
 
-const generateParticipants = (maleCount: number, femaleCount: number): Participant[] => {
+export const generateParticipants = (maleCount: number, femaleCount: number): Participant[] => {
   const participants: Participant[] = [];
   let idCounter = 1;
 
@@ -98,5 +98,3 @@ const generateParticipants = (maleCount: number, femaleCount: number): Participa
 
   return participants;
 };
-
-export const MOCK_PARTICIPANTS: Participant[] = generateParticipants(300, 300);
