@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarPinButton } from '@/components/ui/sidebar';
 import { Trophy, Home, BarChart3, Users, Scale } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -20,11 +20,14 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="hidden md:flex">
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-          <Trophy className="h-8 w-8 text-primary" />
-          <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            Омский Кросс
-          </span>
+        <div className="flex w-full items-center justify-between p-2">
+            <div className="flex items-center gap-2">
+                 <Trophy className="h-8 w-8 text-primary" />
+                  <span className="font-bold text-lg text-sidebar-foreground group-data-[state=collapsed]:hidden">
+                    Омский Кросс
+                  </span>
+            </div>
+            <SidebarPinButton />
         </div>
       </SidebarHeader>
       <SidebarContent>

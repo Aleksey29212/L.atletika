@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, Pin, PinOff } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -34,6 +34,8 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  isPinned: boolean
+  setIsPinned: (pinned: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
@@ -53,6 +55,7 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    defaultPinned?: boolean
   }
 >(
   (
@@ -60,6 +63,7 @@ const SidebarProvider = React.forwardRef<
       defaultOpen = true,
       open: openProp,
       onOpenChange: setOpenProp,
+      defaultPinned = true,
       className,
       style,
       children,
@@ -69,7 +73,8 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
-
+    const [isPinned, setIsPinned] = React.useState(defaultPinned)
+    
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
@@ -93,10 +98,17 @@ const SidebarProvider = React.forwardRef<
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
-    }, [isMobile, setOpen, setOpenMobile])
+      if (isMobile) {
+        setOpenMobile((open) => !open)
+      } else {
+        setIsPinned((pinned) => !pinned)
+        if (isPinned) {
+          setOpen(false)
+        } else {
+          setOpen(true)
+        }
+      }
+    }, [isMobile, setOpen, setOpenMobile, isPinned, setIsPinned])
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
@@ -127,8 +139,10 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        isPinned,
+        setIsPinned,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, isPinned, setIsPinned]
     )
 
     return (
@@ -177,7 +191,19 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, isPinned, setOpen } = useSidebar()
+    
+    const handleMouseEnter = () => {
+      if (!isPinned) {
+        setOpen(true)
+      }
+    }
+
+    const handleMouseLeave = () => {
+      if (!isPinned) {
+        setOpen(false)
+      }
+    }
 
     if (collapsible === "none") {
       return (
@@ -222,6 +248,8 @@ const Sidebar = React.forwardRef<
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div
           className={cn(
@@ -274,6 +302,39 @@ const SidebarTrigger = React.forwardRef<
   )
 })
 SidebarTrigger.displayName = "SidebarTrigger"
+
+const SidebarPinButton = React.forwardRef<
+  React.ElementRef<typeof Button>,
+  React.ComponentProps<typeof Button>
+>(({ className, ...props }, ref) => {
+  const { isPinned, setIsPinned, setOpen, open } = useSidebar()
+
+  const handlePinToggle = () => {
+    setIsPinned(!isPinned)
+    if (isPinned && open) {
+      setOpen(false)
+    }
+  }
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "h-8 w-8 group-data-[state=collapsed]:hidden",
+        className
+      )}
+      onClick={handlePinToggle}
+      {...props}
+    >
+      {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+      <span className="sr-only">{isPinned ? "Unpin sidebar" : "Pin sidebar"}</span>
+    </Button>
+  )
+})
+SidebarPinButton.displayName = "SidebarPinButton"
+
 
 const SidebarRail = React.forwardRef<
   HTMLButtonElement,
@@ -348,7 +409,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2", className)}
       {...props}
     />
   )
@@ -746,6 +807,7 @@ export {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
+  SidebarPinButton,
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
