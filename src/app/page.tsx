@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useData } from '@/providers/data-provider';
-import type { Participant } from '@/lib/types';
+import type { Participant, Gender, Category } from '@/lib/types';
+import { Genders, Categories } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -19,13 +20,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Papa from 'papaparse';
 
 export default function Home() {
-  const { participants, deleteParticipant, recalculateAllScores } = useData();
+  const { participants, deleteParticipant, recalculateAllScores, importParticipants } = useData();
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [isParticipantDialogOpen, setParticipantDialogOpen] = useState(false);
   const [isResultDialogOpen, setResultDialogOpen] = useState(false);
   const [isInsightDialogOpen, setInsightDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRecalculate = () => {
     recalculateAllScores();
@@ -88,6 +90,66 @@ export default function Home() {
       description: "Данные участников были успешно выгружены в CSV файл.",
     });
   };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          try {
+            const newParticipants = results.data.map((row: any) => {
+              const name = row['Имя']?.trim();
+              const team = row['Команда']?.trim();
+              const genderRaw = row['Пол']?.trim();
+              const categoryRaw = row['Категория']?.trim();
+
+              if (!name || !team || !genderRaw || !categoryRaw) {
+                 throw new Error(`Неверные данные в строке: ${JSON.stringify(row)}. Все поля (Имя, Команда, Пол, Категория) обязательны.`);
+              }
+              
+              const gender: Gender | undefined = Genders.find(g => (g === 'Male' && genderRaw === 'Мужской') || (g === 'Female' && genderRaw === 'Женский'));
+              const category: Category | undefined = Categories.find(c => c === categoryRaw);
+
+              if (!gender || !category) {
+                throw new Error(`Неверный пол или категория в строке: ${JSON.stringify(row)}`);
+              }
+
+              return { name, team, gender, category };
+            });
+
+            importParticipants(newParticipants as Omit<Participant, 'id' | 'result'>[]);
+            toast({
+              title: "Импорт завершен",
+              description: `Успешно добавлено ${newParticipants.length} участников.`,
+            });
+          } catch (error: any) {
+             toast({
+              variant: "destructive",
+              title: "Ошибка импорта",
+              description: error.message || 'Не удалось обработать файл. Проверьте формат и данные.',
+            });
+          }
+        },
+        error: (error) => {
+          toast({
+            variant: "destructive",
+            title: "Ошибка при чтении файла",
+            description: error.message,
+          });
+        }
+      });
+       // Reset file input
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  };
   
   const filteredParticipants = useMemo(() => {
     if (!searchQuery) return participants;
@@ -121,6 +183,14 @@ export default function Home() {
               className="max-w-sm"
             />
             <div className="flex items-center gap-2 flex-wrap">
+               <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileImport}
+                  accept=".csv"
+                  className="hidden"
+                />
+               <Button variant="outline" size="sm" onClick={handleImportClick}><FileUp className="mr-2 h-4 w-4" /> Импорт CSV</Button>
                <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт CSV</Button>
                <Button onClick={handleRecalculate} size="sm" variant="secondary">
                   <Calculator className="mr-2 h-4 w-4" />

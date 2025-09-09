@@ -13,6 +13,7 @@ interface DataContextType {
   addOrUpdateResult: (participantId: string, resultData: Omit<Result, 'id' | 'participantId' | 'points'>) => void;
   getParticipantById: (id: string) => Participant | undefined;
   recalculateAllScores: () => void;
+  importParticipants: (newParticipants: Omit<Participant, 'id' | 'result'>[]) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -22,17 +23,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [isDataInitialized, setDataInitialized] = useState(false);
 
   useEffect(() => {
-    const initialParticipants = MOCK_PARTICIPANTS.map(p => ({
-      ...p,
-      result: p.result ? {
-        ...p.result,
-        points: calculateScore(p.result.distance, p.result.time)
-      } : null
-    }));
-    setParticipants(initialParticipants);
-    setDataInitialized(true);
+    // We wrap this in a setTimeout to avoid the hydration error.
+    // This ensures the data is only loaded on the client-side.
+    setTimeout(() => {
+      const initialParticipants = MOCK_PARTICIPANTS.map(p => ({
+        ...p,
+        result: p.result ? {
+          ...p.result,
+          points: calculateScore(p.result.distance, p.result.time)
+        } : null
+      }));
+      setParticipants(initialParticipants);
+      setDataInitialized(true);
+    }, 0);
   }, []);
-
 
   const addParticipant = (participantData: Omit<Participant, 'id' | 'result'>) => {
     const newParticipant: Participant = {
@@ -87,6 +91,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       })
     );
   }, []);
+  
+  const importParticipants = (newParticipants: Omit<Participant, 'id' | 'result'>[]) => {
+    const participantsToAdd: Participant[] = newParticipants.map((p, index) => ({
+      ...p,
+      id: `${new Date().toISOString()}-import-${index}`,
+      result: null,
+    }));
+    setParticipants(prev => [...prev, ...participantsToAdd]);
+  };
 
   const getParticipantById = (id: string) => {
     return participants.find(p => p.id === id);
@@ -107,6 +120,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         addOrUpdateResult,
         getParticipantById,
         recalculateAllScores,
+        importParticipants,
       }}
     >
       {children}
