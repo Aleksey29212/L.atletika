@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Participant } from '@/lib/types';
 import { generatePerformanceInsights } from '@/ai/flows/generate-performance-insights';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,13 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
       setIsLoading(false);
     }
   };
+  
+  useEffect(() => {
+    if (isOpen) {
+        handleGenerateInsights();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -55,24 +62,16 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
         <DialogHeader>
           <DialogTitle>Анализ результатов для {participant.name}</DialogTitle>
           <DialogDescription>
-            Сгенерируйте инсайты на основе результата участника с помощью ИИ.
+            Инсайты, сгенерированные ИИ на основе результатов участника.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
-          {!insights && !isLoading && (
-            <div className="flex flex-col items-center justify-center text-center p-8 bg-muted/50 rounded-lg">
-              <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">Нажмите ниже, чтобы сгенерировать инсайты для {participant.name}.</p>
-              <Button onClick={handleGenerateInsights}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Сгенерировать инсайты
-              </Button>
-            </div>
-          )}
+        <div className="py-4 space-y-4 min-h-[200px]">
           {isLoading && (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-4 text-muted-foreground">Генерация инсайтов...</p>
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p>Генерация инсайтов...</p>
+              </div>
             </div>
           )}
           {error && (
@@ -82,15 +81,21 @@ export default function InsightDialog({ isOpen, setIsOpen, participant }: Insigh
             </Alert>
           )}
           {insights && (
-            <div className="prose prose-sm max-w-none text-foreground bg-accent/10 p-4 rounded-md border border-accent/20">
-              <p style={{ whiteSpace: 'pre-wrap' }}>{insights}</p>
+            <div className="prose prose-sm max-w-none text-foreground bg-accent/50 p-4 rounded-md border border-accent">
+                {insights}
             </div>
           )}
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+          <Button type="button" variant="secondary" onClick={() => setIsOpen(false)}>
             Закрыть
           </Button>
+           {insights && !isLoading && (
+            <Button onClick={handleGenerateInsights}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Сгенерировать заново
+            </Button>
+           )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

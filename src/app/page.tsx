@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/providers/data-provider';
 import type { Participant } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoreHorizontal, PlusCircle, Trash2, Edit, BarChart, Sparkles, FileUp, FileDown, CheckCircle, Calculator } from 'lucide-react';
@@ -73,7 +73,7 @@ export default function Home() {
     }));
 
     const csv = Papa.unparse(dataToExport);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -100,15 +100,12 @@ export default function Home() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Участники</CardTitle>
+        <CardHeader>
+          <div className="flex-1">
+             <CardTitle>Управление участниками</CardTitle>
+             <CardDescription>Добавляйте, редактируйте и управляйте участниками и их результатами.</CardDescription>
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled><FileUp className="mr-2 h-4 w-4" /> Импорт</Button>
-            <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт</Button>
-            <Button onClick={handleRecalculate} size="sm" variant="secondary">
-              <Calculator className="mr-2 h-4 w-4" />
-              Вычислить результаты
-            </Button>
             <Button onClick={handleAddNew} size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
               Добавить участника
@@ -116,13 +113,20 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-            <Input 
+          <div className="flex justify-between items-center mb-4 gap-4">
+             <Input 
               placeholder="Поиск по имени или команде..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
+            <div className="flex items-center gap-2">
+               <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт CSV</Button>
+               <Button onClick={handleRecalculate} size="sm" variant="secondary">
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Пересчитать все
+                </Button>
+            </div>
           </div>
           <div className="rounded-md border">
             <Table>
@@ -155,12 +159,12 @@ export default function Home() {
                           <Badge variant="outline">Нет результата</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="font-mono">
+                      <TableCell className="font-mono text-base">
                          {participant.result ? participant.result.points.toFixed(2) : '-'}
                       </TableCell>
                       <TableCell className="text-right">
                          <TooltipProvider>
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1">
                              <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleAddOrEditResult(participant)}>
@@ -195,7 +199,7 @@ export default function Home() {
                                     <Sparkles className="mr-2 h-4 w-4" /> Получить инсайты
                                   </DropdownMenuItem>
                                   <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive">
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                       <Trash2 className="mr-2 h-4 w-4" /> Удалить
                                     </DropdownMenuItem>
                                   </AlertDialogTrigger>

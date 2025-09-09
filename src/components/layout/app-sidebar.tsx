@@ -21,7 +21,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="hidden md:flex">
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <Trophy className="h-6 w-6 text-primary" />
+          <Trophy className="h-8 w-8 text-primary" />
           <span className="font-bold text-lg text-sidebar-foreground group-data-[collapsible=icon]:hidden">
             Омский Кросс
           </span>
@@ -34,6 +34,7 @@ export function AppSidebar() {
               <Link href={item.href} passHref>
                 <SidebarMenuButton
                   asChild
+                  size="lg"
                   isActive={pathname === item.href}
                   tooltip={item.label}
                   className={cn(

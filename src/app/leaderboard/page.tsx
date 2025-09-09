@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useData } from '@/providers/data-provider';
 import type { Participant, Gender, Category, Distance } from '@/lib/types';
 import { Genders, Categories } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -19,11 +19,11 @@ type LeaderboardEntry = {
 const getRankClass = (rank: number) => {
   switch (rank) {
     case 1:
-      return 'bg-yellow-100/50 dark:bg-yellow-900/50';
+      return 'bg-yellow-400/10 dark:bg-yellow-400/10';
     case 2:
-      return 'bg-gray-100/50 dark:bg-gray-700/50';
+      return 'bg-gray-400/10 dark:bg-gray-400/10';
     case 3:
-      return 'bg-orange-100/50 dark:bg-orange-900/50';
+      return 'bg-orange-500/10 dark:bg-orange-500/10';
     default:
       return '';
   }
@@ -110,13 +110,16 @@ export default function LeaderboardPage() {
     participants.forEach(p => {
       if (p.result) distances.add(p.result.distance);
     });
-    return Array.from(distances);
+    return Array.from(distances).sort();
   }, [participants]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Личные рейтинги</CardTitle>
+        <CardDescription>
+          Таблица лидеров участников, отсортированная по их баллам. Используйте фильтры для уточнения результатов.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap items-center gap-4 mb-4">

@@ -21,11 +21,11 @@ const teamCompositions = [
 const getRankClass = (rank: number) => {
   switch (rank) {
     case 1:
-      return 'bg-yellow-100/50 dark:bg-yellow-900/50';
+      return 'bg-yellow-400/10 dark:bg-yellow-400/10';
     case 2:
-      return 'bg-gray-100/50 dark:bg-gray-700/50';
+      return 'bg-gray-400/10 dark:bg-gray-400/10';
     case 3:
-      return 'bg-orange-100/50 dark:bg-orange-900/50';
+      return 'bg-orange-500/10 dark:bg-orange-500/10';
     default:
       return '';
   }
@@ -108,7 +108,7 @@ export default function TeamsPage() {
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
             <Select value={composition} onValueChange={setComposition}>
-              <SelectTrigger className="w-[240px]">
+              <SelectTrigger className="w-full sm:w-[240px]">
                 <SelectValue placeholder="Выберите состав команды" />
               </SelectTrigger>
               <SelectContent>
@@ -145,7 +145,7 @@ export default function TeamsPage() {
                             {members.map(member => (
                               <Tooltip key={member.id}>
                                 <TooltipTrigger asChild>
-                                  <Avatar className="border-2 border-card">
+                                  <Avatar className="border-2 border-background">
                                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                                   </Avatar>
                                 </TooltipTrigger>
@@ -157,7 +157,7 @@ export default function TeamsPage() {
                           </TooltipProvider>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">{totalPoints.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold text-base">{totalPoints.toFixed(2)}</TableCell>
                       </TableRow>
                     );
                 })
@@ -177,7 +177,7 @@ export default function TeamsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-6 w-6" />
+            <Users className="h-5 w-5" />
             Участники вне команд
           </CardTitle>
           <CardDescription>
@@ -206,7 +206,7 @@ export default function TeamsPage() {
                         <TableCell>{p.team}</TableCell>
                         <TableCell>{p.gender === 'Male' ? 'Мужской' : 'Женский'}</TableCell>
                         <TableCell>{p.result!.distance}</TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell className="text-right font-semibold text-base">
                           {(p as any).points.toFixed(2)}
                         </TableCell>
                       </TableRow>
