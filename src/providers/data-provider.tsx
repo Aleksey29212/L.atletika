@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import type { Participant, Result } from '@/lib/types';
 import { MOCK_PARTICIPANTS } from '@/lib/mock-data';
 import { calculateScore } from '@/lib/utils';
@@ -22,18 +22,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [isDataInitialized, setDataInitialized] = useState(false);
 
   useEffect(() => {
-    if (!isDataInitialized) {
-      const initialParticipants = MOCK_PARTICIPANTS.map(p => ({
-        ...p,
-        result: p.result ? {
-          ...p.result,
-          points: calculateScore(p.result.distance, p.result.time)
-        } : null
-      }));
-      setParticipants(initialParticipants);
-      setDataInitialized(true);
-    }
-  }, [isDataInitialized]);
+    const initialParticipants = MOCK_PARTICIPANTS.map(p => ({
+      ...p,
+      result: p.result ? {
+        ...p.result,
+        points: calculateScore(p.result.distance, p.result.time)
+      } : null
+    }));
+    setParticipants(initialParticipants);
+    setDataInitialized(true);
+  }, []);
 
 
   const addParticipant = (participantData: Omit<Participant, 'id' | 'result'>) => {
@@ -60,7 +58,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       ...resultData,
       id: new Date().toISOString(),
       participantId: participantId,
-      points: 0 
+      points: calculateScore(resultData.distance, resultData.time)
     };
 
     setParticipants(prev =>
