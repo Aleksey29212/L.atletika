@@ -30,13 +30,14 @@ const getRankClass = (rank: number) => {
 };
 
 const getMedal = (rank: number) => {
+  const medalClass = "h-6 w-6";
   switch (rank) {
     case 1:
-      return <Medal className="h-5 w-5 text-yellow-500" />;
+      return <Medal className={cn(medalClass, "text-yellow-500")} />;
     case 2:
-      return <Medal className="h-5 w-5 text-gray-500" />;
+      return <Medal className={cn(medalClass, "text-gray-500")} />;
     case 3:
-      return <Medal className="h-5 w-5 text-orange-600" />;
+      return <Medal className={cn(medalClass, "text-orange-600")} />;
     default:
       return null;
   }
