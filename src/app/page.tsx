@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 export default function Home() {
   const { participants, deleteParticipant, recalculateAllScores, importParticipants } = useData();
@@ -74,12 +74,20 @@ export default function Home() {
       'Очки': p.result?.points.toFixed(2) || 'N/A'
     }));
 
-    const csv = Papa.unparse(dataToExport);
-    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Участники");
+    
+    // Generate buffer
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+    // Create blob
+    const blob = new Blob([excelBuffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'});
+
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'participants_export.csv');
+    link.setAttribute('download', 'participants_export.xlsx');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -87,7 +95,7 @@ export default function Home() {
     
     toast({
       title: "Экспорт завершен",
-      description: "Данные участников были успешно выгружены в CSV файл.",
+      description: "Данные участников были успешно выгружены в Excel файл.",
     });
   };
 
@@ -98,53 +106,58 @@ export default function Home() {
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          try {
-            const newParticipants = results.data.map((row: any) => {
-              const name = row['Имя']?.trim();
-              const team = row['Команда']?.trim();
-              const genderRaw = row['Пол']?.trim();
-              const categoryRaw = row['Категория']?.trim();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-              if (!name || !team || !genderRaw || !categoryRaw) {
-                 throw new Error(`Неверные данные в строке: ${JSON.stringify(row)}. Все поля (Имя, Команда, Пол, Категория) обязательны.`);
-              }
-              
-              const gender: Gender | undefined = Genders.find(g => (g === 'Male' && genderRaw === 'Мужской') || (g === 'Female' && genderRaw === 'Женский'));
-              const category: Category | undefined = Categories.find(c => c === categoryRaw);
+          const newParticipants = json.map((row: any, index: number) => {
+            const name = row['Имя']?.trim();
+            const team = row['Команда']?.trim();
+            const genderRaw = row['Пол']?.trim();
+            const categoryRaw = row['Категория']?.trim();
 
-              if (!gender || !category) {
-                throw new Error(`Неверный пол или категория в строке: ${JSON.stringify(row)}`);
-              }
+            if (!name || !team || !genderRaw || !categoryRaw) {
+               throw new Error(`Неверные данные в строке ${index + 2}. Все поля (Имя, Команда, Пол, Категория) обязательны.`);
+            }
+            
+            const gender: Gender | undefined = Genders.find(g => (g === 'Male' && genderRaw === 'Мужской') || (g === 'Female' && genderRaw === 'Женский'));
+            const category: Category | undefined = Categories.find(c => c === categoryRaw);
 
-              return { name, team, gender, category };
-            });
+            if (!gender || !category) {
+              throw new Error(`Неверный пол или категория в строке ${index + 2}: ${JSON.stringify(row)}`);
+            }
 
-            importParticipants(newParticipants as Omit<Participant, 'id' | 'result'>[]);
-            toast({
-              title: "Импорт завершен",
-              description: `Успешно добавлено ${newParticipants.length} участников.`,
-            });
-          } catch (error: any) {
-             toast({
-              variant: "destructive",
-              title: "Ошибка импорта",
-              description: error.message || 'Не удалось обработать файл. Проверьте формат и данные.',
-            });
-          }
-        },
-        error: (error) => {
+            return { name, team, gender, category };
+          });
+
+          importParticipants(newParticipants as Omit<Participant, 'id' | 'result'>[]);
           toast({
+            title: "Импорт завершен",
+            description: `Успешно добавлено ${newParticipants.length} участников.`,
+          });
+        } catch (error: any) {
+           toast({
             variant: "destructive",
-            title: "Ошибка при чтении файла",
-            description: error.message,
+            title: "Ошибка импорта",
+            description: error.message || 'Не удалось обработать файл. Проверьте формат и данные.',
           });
         }
-      });
-       // Reset file input
+      };
+      reader.onerror = (error) => {
+        toast({
+            variant: "destructive",
+            title: "Ошибка при чтении файла",
+            description: "Не удалось прочитать файл.",
+          });
+      }
+      reader.readAsBinaryString(file);
+      
+      // Reset file input
       if (event.target) {
         event.target.value = '';
       }
@@ -162,7 +175,7 @@ export default function Home() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row flex-wrap items-start gap-4">
           <div className="flex-1">
              <CardTitle>Управление участниками</CardTitle>
              <CardDescription>Добавляйте, редактируйте и управляйте участниками и их результатами.</CardDescription>
@@ -187,11 +200,11 @@ export default function Home() {
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileImport}
-                  accept=".csv"
+                  accept=".xlsx, .xls"
                   className="hidden"
                 />
-               <Button variant="outline" size="sm" onClick={handleImportClick}><FileUp className="mr-2 h-4 w-4" /> Импорт CSV</Button>
-               <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт CSV</Button>
+               <Button variant="outline" size="sm" onClick={handleImportClick}><FileUp className="mr-2 h-4 w-4" /> Импорт Excel</Button>
+               <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт Excel</Button>
                <Button onClick={handleRecalculate} size="sm" variant="secondary">
                   <Calculator className="mr-2 h-4 w-4" />
                   Пересчитать все
