@@ -56,15 +56,17 @@ const generateResult = (participantId: string, gender: Gender): Result | null =>
   };
 };
 
-const generateParticipants = (count: number): Participant[] => {
+const generateParticipants = (maleCount: number, femaleCount: number): Participant[] => {
   const participants: Participant[] = [];
-  for (let i = 1; i <= count; i++) {
-    const gender: Gender = Math.random() > 0.5 ? 'Male' : 'Female';
-    const firstName = gender === 'Male' ? getRandomItem(MALE_NAMES) : getRandomItem(FEMALE_NAMES);
-    const lastName = getRandomItem(LAST_NAMES) + (gender === 'Female' ? 'а' : '');
+  let idCounter = 1;
+
+  // Generate males
+  for (let i = 0; i < maleCount; i++) {
+    const gender: Gender = 'Male';
+    const firstName = getRandomItem(MALE_NAMES);
+    const lastName = getRandomItem(LAST_NAMES);
     const category = getRandomItem(Categories);
-    
-    const participantId = i.toString();
+    const participantId = (idCounter++).toString();
     
     participants.push({
       id: participantId,
@@ -75,7 +77,26 @@ const generateParticipants = (count: number): Participant[] => {
       result: generateResult(participantId, gender),
     });
   }
+
+  // Generate females
+  for (let i = 0; i < femaleCount; i++) {
+    const gender: Gender = 'Female';
+    const firstName = getRandomItem(FEMALE_NAMES);
+    const lastName = getRandomItem(LAST_NAMES) + 'а';
+    const category = getRandomItem(Categories);
+    const participantId = (idCounter++).toString();
+    
+    participants.push({
+      id: participantId,
+      name: `${firstName} ${lastName}`,
+      team: getRandomItem(SCHOOLS),
+      gender,
+      category,
+      result: generateResult(participantId, gender),
+    });
+  }
+
   return participants;
 };
 
-export const MOCK_PARTICIPANTS: Participant[] = generateParticipants(600);
+export const MOCK_PARTICIPANTS: Participant[] = generateParticipants(300, 300);
