@@ -113,14 +113,14 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-between items-center mb-4 gap-4">
+          <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
              <Input 
               placeholder="Поиск по имени или команде..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-sm"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
                <Button variant="outline" size="sm" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" /> Экспорт CSV</Button>
                <Button onClick={handleRecalculate} size="sm" variant="secondary">
                   <Calculator className="mr-2 h-4 w-4" />
